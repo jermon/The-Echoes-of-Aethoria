@@ -1,0 +1,18 @@
+---
+layout: game
+title: Checking Your Gear
+choices:
+  - text: Enter the Whispering Forest
+    next_scene: forest
+---
+
+You inspect your gear. You have a bow, a quiver of arrows, a small dagger, and a pouch of healing herbs.
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    addToInventory("Bow");
+    addToInventory("Arrows");
+    addToInventory("Dagger");
+    addToInventory("Healing Herbs");
+});
+</script>
