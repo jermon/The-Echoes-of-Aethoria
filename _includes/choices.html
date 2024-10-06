@@ -1,0 +1,5 @@
+<div id="choices">
+    {% for choice in page.choices %}
+        <a href="{{ choice.next_scene }}.html" class="choice">{{ choice.text }}</a>
+    {% endfor %}
+</div>
