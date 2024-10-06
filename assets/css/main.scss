@@ -11,7 +11,83 @@ body {
     margin: 0;
 }
 
-/* ... (previous styles remain the same) ... */
+#character-stats {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+
+    h2 {
+        margin-top: 0;
+        color: $accent-color;
+    }
+
+    #stats-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+
+        .stat {
+            flex-basis: 48%;
+            margin-bottom: 10px;
+
+            label {
+                font-weight: bold;
+                margin-right: 5px;
+            }
+        }
+    }
+}
+
+#game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 5px;
+}
+
+h1 {
+    color: $accent-color;
+    text-align: center;
+}
+
+#story-text {
+    margin-bottom: 20px;
+}
+
+#choices {
+    a {
+        display: block;
+        background-color: $accent-color;
+        color: $secondary-color;
+        padding: 10px;
+        margin-bottom: 10px;
+        text-decoration: none;
+        border-radius: 3px;
+        transition: background-color 0.3s;
+
+        &:hover {
+            background-color: darken($accent-color, 10%);
+        }
+    }
+}
+
+#inventory {
+    margin-top: 20px;
+    border-top: 1px solid $secondary-color;
+    padding-top: 20px;
+
+    h2 {
+        color: $accent-color;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+}
+
 
 .popup {
     display: none;
