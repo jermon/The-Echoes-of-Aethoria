@@ -1,0 +1,29 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }} - The Echoes of Aethoria</title>
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+</head>
+<body>
+    <div id="game-container">
+        <h1>The Echoes of Aethoria</h1>
+        <div id="story-text">
+            {{ content }}
+        </div>
+        <div id="choices">
+            {% for choice in page.choices %}
+                <a href="{{ choice.next_scene }}.html" class="choice">{{ choice.text }}</a>
+            {% endfor %}
+        </div>
+        <div id="inventory">
+            <h2>Inventory</h2>
+            <ul id="inventory-list"></ul>
+        </div>
+    </div>
+    <script src="{{ '/assets/js/game.js' | relative_url }}"></script>
+</body>
+</html>
