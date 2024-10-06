@@ -1,5 +1,7 @@
 # The Echoes of Aethoria
 
+[Start your journey](https://jermon.github.io/The-Echoes-of-Aethoria/)
+
 ## Synopsis
 
 In "The Echoes of Aethoria," you play as Lyra, the last surviving member of the Aethorian Rangers. Your homeland has been overrun by the shadow-wraiths of the Void, and you must embark on a perilous journey to recover the five Astral Shards. These ancient artifacts, when combined, have the power to banish the Void and restore light to your world.
