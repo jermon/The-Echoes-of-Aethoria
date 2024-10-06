@@ -11,20 +11,13 @@
 <body>
     {% include character_stats.html %}
     <div id="game-container">
-        <h1>The Echoes of Aethoria</h1>
+        {% include game_header.html %}
         <div id="story-text">
             {{ content }}
         </div>
-        <div id="choices">
-            {% for choice in page.choices %}
-                <a href="{{ choice.next_scene }}.html" class="choice">{{ choice.text }}</a>
-            {% endfor %}
-        </div>
-        <div id="inventory">
-            <h2>Inventory</h2>
-            <ul id="inventory-list"></ul>
-        </div>
+        {% include choices.html %}
     </div>
+    {% include inventory_popup.html %}
     <script src="{{ '/assets/js/game.js' | relative_url }}"></script>
 </body>
 </html>
