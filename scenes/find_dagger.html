@@ -1,0 +1,33 @@
+---
+layout: game
+title: A Glint in the Shadows
+choices:
+  - text: Take the dagger
+    next_scene: take_dagger
+  - text: Leave the dagger
+    next_scene: leave_dagger
+---
+
+As you cautiously make your way through the dense underbrush of the Whispering Forest, a faint glimmer catches your eye. Pushing aside a curtain of hanging moss, you discover a small clearing bathed in a shaft of sunlight. There, partially buried in the soft earth, lies an ornate dagger.
+
+The blade appears to be made of a strange, iridescent metal that seems to shimmer with an inner light. Its hilt is wrapped in well-preserved leather, adorned with intricate engravings that hint at an ancient and forgotten craftsmanship.
+
+This dagger could prove to be a valuable tool in your quest, but you can't shake the feeling that such a finely crafted weapon might have been left here for a reason.
+
+What do you do?
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const choices = document.querySelectorAll('#choices a');
+    choices.forEach(choice => {
+        choice.addEventListener('click', function(e) {
+            if (this.textContent.includes('Take the dagger')) {
+                e.preventDefault();
+                addToInventory('Mysterious Dagger');
+                alert('You have added the Mysterious Dagger to your inventory!');
+                window.location.href = 'take_dagger.html';
+            }
+        });
+    });
+});
+</script>
