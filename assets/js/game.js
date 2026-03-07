@@ -3,7 +3,8 @@
 const INVENTORY_COMPARTMENTS = {
     back: { label: 'Back', maxWeight: 8, maxSpace: 6 },
     belt: { label: 'Belt', maxWeight: 4, maxSpace: 4 },
-    hands: { label: 'Hands', maxWeight: 6, maxSpace: 2 }
+    hands: { label: 'Hands', maxWeight: 6, maxSpace: 2 },
+    armour: { label: 'Armour', maxWeight: 10, maxSpace: 6 }
 };
 
 const ITEM_CATALOG = {
@@ -14,6 +15,7 @@ const ITEM_CATALOG = {
     Backpack: {
         weight: 2,
         space: 2,
+        requiredCompartment: 'back',
         upgrade: {
             compartment: 'back',
             maxWeight: 6,
@@ -92,7 +94,8 @@ const gameState = {
     inventory: {
         back: [],
         belt: [],
-        hands: []
+        hands: [],
+        armour: []
     },
     stats: {
         strength: 10,
@@ -203,26 +206,19 @@ function addToInventory(itemName, preferredCompartment = 'back') {
 
     const itemData = getItemData(itemName);
     const item = { id: generateItemId(), name: itemName, ...itemData };
+    const targetCompartment = item.requiredCompartment || preferredCompartment;
 
-    const compartmentsToTry = [
-        preferredCompartment,
-        ...Object.keys(INVENTORY_COMPARTMENTS).filter(compartment => compartment !== preferredCompartment)
-    ];
+    const fitCheck = canAddItemToCompartment(item, targetCompartment);
 
-    const fittingCompartment = compartmentsToTry.find(compartment => {
-        const fitCheck = canAddItemToCompartment(item, compartment);
-        return fitCheck.fitsWeight && fitCheck.fitsSpace && fitCheck.fitsStrength;
-    });
-
-    if (!fittingCompartment) {
-        setInventoryMessage(`No room for ${itemName}. It exceeds space, compartment weight, or strength limits.`);
-        showGlideAlert(`No room for ${itemName}.`, 'warning');
+    if (!(fitCheck.fitsWeight && fitCheck.fitsSpace && fitCheck.fitsStrength)) {
+        setInventoryMessage(`No room for ${itemName} in ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
+        showGlideAlert(`No room for ${itemName} in ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`, 'warning');
         return false;
     }
 
-    gameState.inventory[fittingCompartment].push(item);
-    setInventoryMessage(`${itemName} added to ${INVENTORY_COMPARTMENTS[fittingCompartment].label}.`);
-    showGlideAlert(`${itemName} added to ${INVENTORY_COMPARTMENTS[fittingCompartment].label}.`, 'success');
+    gameState.inventory[targetCompartment].push(item);
+    setInventoryMessage(`${itemName} added to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
+    showGlideAlert(`${itemName} added to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`, 'success');
     updateInventoryDisplay();
     saveGame();
     return true;
@@ -277,6 +273,15 @@ function moveItem(itemId, targetCompartment) {
     }
 
     const [item] = gameState.inventory[sourceCompartment].splice(itemIndex, 1);
+
+    if (item.requiredCompartment && targetCompartment !== item.requiredCompartment) {
+        gameState.inventory[sourceCompartment].splice(itemIndex, 0, item);
+        setInventoryMessage(`${item.name} must stay in ${INVENTORY_COMPARTMENTS[item.requiredCompartment].label}.`);
+        showGlideAlert(`${item.name} must stay in ${INVENTORY_COMPARTMENTS[item.requiredCompartment].label}.`, 'warning');
+        updateInventoryDisplay();
+        return false;
+    }
+
     const fitCheck = canAddItemToCompartment(item, targetCompartment);
 
     if (!(fitCheck.fitsWeight && fitCheck.fitsSpace && fitCheck.fitsStrength)) {
@@ -494,10 +499,10 @@ function saveGame() {
 
 function migrateLegacyInventory(legacyInventory) {
     if (!Array.isArray(legacyInventory)) {
-        return { back: [], belt: [], hands: [] };
+        return { back: [], belt: [], hands: [], armour: [] };
     }
 
-    const migrated = { back: [], belt: [], hands: [] };
+    const migrated = { back: [], belt: [], hands: [], armour: [] };
 
     legacyInventory.forEach(itemName => {
         const itemData = getItemData(itemName);
@@ -519,7 +524,7 @@ function loadGame() {
             gameState.inventory = loadedState.inventory || gameState.inventory;
         }
 
-        Object.keys(gameState.inventory).forEach(compartment => {
+        Object.keys(INVENTORY_COMPARTMENTS).forEach(compartment => {
             gameState.inventory[compartment] = (gameState.inventory[compartment] || []).map(item => ({
                 id: item.id || generateItemId(),
                 ...item
@@ -577,20 +582,31 @@ function setupEdgePopups() {
 function setupInventoryPopup() {
     const popup = document.getElementById('inventory-popup');
     const addForm = document.getElementById('inventory-add-form');
+    const itemSelect = document.getElementById('inventory-item-select');
+    const compartmentSelect = document.getElementById('inventory-compartment-select');
 
-    if (!popup || !addForm) {
+    if (!popup || !addForm || !itemSelect || !compartmentSelect) {
         return;
     }
 
-    popup.addEventListener('mouseleave', () => {
-        popup.classList.remove('show');
+    itemSelect.addEventListener('change', () => {
+        const selectedItemData = getItemData(itemSelect.value);
+
+        if (selectedItemData.requiredCompartment) {
+            compartmentSelect.value = selectedItemData.requiredCompartment;
+        }
     });
 
     addForm.addEventListener('submit', event => {
         event.preventDefault();
 
-        const itemName = document.getElementById('inventory-item-select').value;
-        const compartment = document.getElementById('inventory-compartment-select').value;
+        const itemName = itemSelect.value;
+        const selectedItemData = getItemData(itemName);
+        const compartment = selectedItemData.requiredCompartment || compartmentSelect.value;
+
+        if (selectedItemData.requiredCompartment) {
+            compartmentSelect.value = selectedItemData.requiredCompartment;
+        }
 
         addToInventory(itemName, compartment);
     });
