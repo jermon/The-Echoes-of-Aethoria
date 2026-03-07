@@ -38,6 +38,17 @@ body {
         font-size: 1rem;
     }
 
+    .character-stats-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        h2 {
+            margin: 0;
+        }
+    }
+
     #stats-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
@@ -148,6 +159,21 @@ h1 {
     display: block;
 }
 
+#skills-popup {
+    left: auto;
+    right: 0;
+    transform: translateX(105%);
+
+    .popup-content {
+        border-right: 0;
+        border-left: 1px solid rgba($rune-gold, 0.35);
+    }
+
+    &.show {
+        transform: translateX(0);
+    }
+}
+
 .popup.show {
     transform: translateX(0);
 }
@@ -199,7 +225,9 @@ h1 {
 }
 
 #open-inventory,
-#close-inventory {
+#close-inventory,
+#open-skills,
+#close-skills {
     background: linear-gradient(180deg, $rune-gold 0%, $rune-gold-dark 100%);
     color: #191210;
     border: 1px solid rgba(#f5d689, 0.5);
@@ -221,6 +249,71 @@ h1 {
     top: 22px;
     left: 24px;
     z-index: 220;
+}
+
+#open-skills {
+    position: static;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+}
+
+#skills-tree {
+    margin: 14px 0 18px;
+
+    .skills-list {
+        list-style: none;
+        margin: 0;
+        padding-left: 0;
+    }
+
+    > .skills-list-general {
+        display: grid;
+        gap: 10px;
+    }
+
+    .skill-general,
+    .skill-branch,
+    .skill-specific {
+        padding: 7px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba($rune-gold, 0.2);
+    }
+
+    .skill-general {
+        background: rgba($stone, 0.74);
+        font-weight: 700;
+    }
+
+    .skills-list-branch {
+        margin-top: 8px;
+        padding-left: 14px;
+        display: grid;
+        gap: 8px;
+    }
+
+    .skill-branch {
+        background: rgba(31, 44, 70, 0.52);
+        font-weight: 600;
+    }
+
+    .skills-list-specific {
+        margin-top: 8px;
+        padding-left: 14px;
+        display: grid;
+        gap: 6px;
+    }
+
+    .skill-specific {
+        background: rgba(20, 20, 33, 0.72);
+        font-weight: 400;
+        font-size: 0.86rem;
+    }
+}
+
+.skill-tree-helper {
+    margin: 0;
+    color: rgba($parchment, 0.8);
+    font-size: 0.86rem;
 }
 
 #inventory-list {
