@@ -1,19 +1,24 @@
 ---
 layout: game
-title: Checking Your Gear
+title: Inventory
+available_items:
+  - Bow
+  - Arrows
+  - Dagger
+  - Healing Herbs
+  - Backpack
 choices:
   - text: Enter the Whispering Forest
     next_scene: forest
 ---
 
-You inspect your gear. You have a bow, a quiver of arrows, a small dagger, a pouch of healing herbs, and a worn but sturdy backpack.
+<h2>Available Gear</h2>
+<p>On your journey, you've gathered several pieces of equipment. Drag the items below into your inventory compartments to equip them.</p>
+
+<div id="available-items-bar"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    addToInventory("Bow");
-    addToInventory("Arrows");
-    addToInventory("Dagger");
-    addToInventory("Healing Herbs");
-    addToInventory("Backpack", "back");
+    displayAvailableItems({{ page.available_items | jsonify }});
 });
 </script>

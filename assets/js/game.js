@@ -537,42 +537,6 @@ function updateInventoryDisplay() {
         inventoryList.appendChild(section);
     });
 
-    const availableItemsSection = document.createElement('section');
-    availableItemsSection.className = 'inventory-compartment inventory-available-items';
-
-    const availableHeading = document.createElement('h3');
-    availableHeading.textContent = 'Available Items';
-    availableItemsSection.appendChild(availableHeading);
-
-    const availableList = document.createElement('ul');
-    availableList.className = 'inventory-items inventory-items-available';
-
-    const availableItems = Object.entries(ITEM_CATALOG).filter(([itemName]) => !hasItemByName(itemName));
-
-    if (availableItems.length > 0) {
-        availableItems.forEach(([itemName, itemData]) => {
-            const listItem = document.createElement('li');
-            listItem.draggable = true;
-            listItem.className = 'available-item';
-            listItem.dataset.itemName = itemName;
-            listItem.textContent = `${itemName} (W:${itemData.weight}, S:${itemData.space})`;
-
-            listItem.addEventListener('dragstart', event => {
-                event.dataTransfer.setData('application/x-available-item', itemName);
-                event.dataTransfer.setData('text/inventory-item-name', itemName);
-            });
-
-            availableList.appendChild(listItem);
-        });
-    } else {
-        const emptyLine = document.createElement('li');
-        emptyLine.textContent = 'All known items are equipped.';
-        emptyLine.className = 'empty-slot';
-        availableList.appendChild(emptyLine);
-    }
-
-    availableItemsSection.appendChild(availableList);
-    inventoryList.appendChild(availableItemsSection);
 }
 
 function updateStatsDisplay() {
@@ -768,6 +732,13 @@ function setupInventoryPopup() {
     if (!popup) {
         return;
     }
+
+    const closeButton = popup.querySelector('.popup-close-btn');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            popup.classList.remove('show');
+        });
+    }
 }
 function setupSkillsPopup() {
     const popup = document.getElementById('skills-popup');
@@ -801,5 +772,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function displayAvailableItems(items, containerId = 'available-items-bar') {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.warn(`Container with id '${containerId}' not found`);
+        return;
+    }
+
+    if (!items || !Array.isArray(items)) {
+        return;
+    }
+
+    items.forEach(itemName => {
+        const itemDiv = document.createElement('div');
+        itemDiv.draggable = true;
+        itemDiv.className = 'available-item-chip';
+        itemDiv.textContent = itemName;
+        
+        itemDiv.addEventListener('dragstart', function(e) {
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('application/x-available-item', itemName);
+        });
+        
+        container.appendChild(itemDiv);
+    });
+}
+
+function addItemsOnLoad(items) {
+    if (!items || !Array.isArray(items)) {
+        return;
+    }
+
+    items.forEach(itemName => {
+        addToInventory(itemName);
+    });
+}
+
 window.showGlideAlert = showGlideAlert;
 window.getFoeData = getFoeData;
+window.displayAvailableItems = displayAvailableItems;
+window.addItemsOnLoad = addItemsOnLoad;

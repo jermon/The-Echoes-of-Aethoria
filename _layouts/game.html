@@ -1,23 +1,14 @@
 ---
+layout: default
 ---
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page.title }} - The Echoes of Aethoria</title>
-    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
-</head>
-<body>
-    {% include game_header.html %}
-    {% include character_stats.html %}
-    <div id="game-container">
-        <h1>{{ page.title }}</h1>
-        <div id="story-text">
-            {{ content }}
-        </div>
-        {% include choices.html %}
+{% include game_header.html %}
+{% include character_stats.html %}
+<div id="game-container">
+    <h1>{{ page.title }}</h1>
+    <div id="story-text">
+        {{ content }}
     </div>
+    {% include choices.html %}
     {% include inventory_popup.html %}
     <script>
         window.GAME_DATA = {
@@ -26,5 +17,4 @@
         };
     </script>
     <script src="{{ '/assets/js/game.js' | relative_url }}"></script>
-</body>
-</html>
+</div>

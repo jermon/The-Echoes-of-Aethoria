@@ -185,12 +185,52 @@ h1 {
     background: linear-gradient(180deg, #20182f 0%, #120e1d 100%);
     border-right: 1px solid rgba($rune-gold, 0.35);
     padding: 22px;
+    display: flex;
+    flex-direction: column;
 
     h2 {
         color: $rune-gold;
         margin-top: 0;
         text-transform: uppercase;
         letter-spacing: 0.06em;
+    }
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    h2 {
+        margin: 0;
+        flex: 1;
+    }
+}
+
+.popup-close-btn {
+    background: none;
+    border: none;
+    color: $parchment;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        color: $rune-gold;
+        transform: scale(1.1);
+    }
+
+    &:active {
+        transform: scale(0.95);
     }
 }
 
@@ -459,5 +499,38 @@ h1 {
     p {
         margin: 0 0 8px;
         font-size: 0.9rem;
+    }
+}
+
+#available-items-bar {
+    margin: 20px 0;
+    padding: 16px;
+    background: rgba($stone, 0.5);
+    border: 1px solid rgba($rune-gold, 0.3);
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    flex-wrap: wrap;
+
+    .available-item-chip {
+        padding: 8px 12px;
+        background: linear-gradient(145deg, rgba($rune-gold, 0.3), rgba($rune-gold-dark, 0.2));
+        border: 1px solid rgba($rune-gold, 0.5);
+        border-radius: 6px;
+        cursor: grab;
+        white-space: nowrap;
+        color: $parchment;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: linear-gradient(145deg, rgba($rune-gold, 0.4), rgba($rune-gold-dark, 0.3));
+            box-shadow: 0 0 8px rgba($rune-gold, 0.3);
+        }
+
+        &:active {
+            cursor: grabbing;
+        }
     }
 }

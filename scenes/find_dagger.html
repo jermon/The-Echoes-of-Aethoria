@@ -1,6 +1,8 @@
 ---
 layout: game
 title: A Glint in the Shadows
+available_items:
+  - Mysterious Dagger
 choices:
   - text: Take the dagger
     next_scene: take_dagger
@@ -16,18 +18,21 @@ This dagger could prove to be a valuable tool in your quest, but you can't shake
 
 What do you do?
 
+<div id="available-items-bar"></div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const choices = document.querySelectorAll('#choices a');
-    choices.forEach(choice => {
-        choice.addEventListener('click', function(e) {
-            if (this.textContent.includes('Take the dagger')) {
+    displayAvailableItems({{ page.available_items | jsonify }});
+    
+    const takeChoice = document.querySelectorAll('#choices a').forEach(choice => {
+        if (choice.textContent.includes('Take the dagger')) {
+            choice.addEventListener('click', function(e) {
                 e.preventDefault();
-                addToInventory('Mysterious Dagger');
+                addItemsOnLoad(['Mysterious Dagger']);
                 showGlideAlert('You have added the Mysterious Dagger to your inventory!', 'success');
                 window.location.href = 'take_dagger.html';
-            }
-        });
+            });
+        }
     });
 });
 </script>

@@ -1,6 +1,10 @@
 ---
 layout: game
 title: A New Ally
+items_to_add:
+  - Dagger of dexterity
+stat_bonuses:
+  dexterity: 1
 choices:
   - text: Continue your journey
     next_scene: forest
@@ -14,8 +18,13 @@ You carefully secure the dagger to your belt, feeling a little more prepared for
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    addToInventory("Dagger of dexterity");
-    modifyStat('dexterity', 1);
-    showGlideAlert('Your dexterity has increased by 1!', 'success');
+    addItemsOnLoad({{ page.items_to_add | jsonify }});
+    const statBonuses = {{ page.stat_bonuses | jsonify }};
+    if (statBonuses) {
+        for (const [stat, bonus] of Object.entries(statBonuses)) {
+            modifyStat(stat, bonus);
+            showGlideAlert(`Your ${stat} has increased by ${bonus}!`, 'success');
+        }
+    }
 });
 </script>
