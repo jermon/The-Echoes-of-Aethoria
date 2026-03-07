@@ -1,0 +1,177 @@
+---
+layout: game
+title: The Dark Path
+---
+
+The darker path narrows into a shadow-choked corridor of ancient trees. A hulking forest troll drags itself from the undergrowth, blocking your way with a guttural roar.
+
+<div id="combat-panel">
+    <p><strong>Forest Troll Endurance:</strong> <span id="troll-endurance">18</span></p>
+    <p><strong>Your Endurance:</strong> <span id="hero-endurance"></span></p>
+    <label for="weapon-choice">Choose your weapon:</label>
+    <select id="weapon-choice"></select>
+    <div class="combat-actions">
+        <button type="button" id="attack-button">Attack</button>
+        <button type="button" id="flee-button">Flee</button>
+    </div>
+    <p id="combat-status" aria-live="polite"></p>
+    <div id="combat-log" aria-live="polite"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const foe = {
+        name: 'Forest Troll',
+        endurance: 18,
+        dexterity: 8,
+        armourModifier: 2,
+        attackSkill: 5,
+        weaponAttackModifier: 1,
+        damage: [2, 5]
+    };
+
+    const weaponChoice = document.getElementById('weapon-choice');
+    const attackButton = document.getElementById('attack-button');
+    const fleeButton = document.getElementById('flee-button');
+    const trollEndurance = document.getElementById('troll-endurance');
+    const heroEndurance = document.getElementById('hero-endurance');
+    const combatStatus = document.getElementById('combat-status');
+    const combatLog = document.getElementById('combat-log');
+
+    const heroArmourModifier = 0;
+    let combatEnded = false;
+
+    function appendLog(message) {
+        const entry = document.createElement('p');
+        entry.textContent = message;
+        combatLog.prepend(entry);
+    }
+
+    function renderWeapons() {
+        const weapons = getCombatWeaponsFromInventory();
+        weaponChoice.innerHTML = '';
+
+        if (weapons.length === 0) {
+            const fists = document.createElement('option');
+            fists.value = '__fists__';
+            fists.textContent = 'Bare Hands (Untrained)';
+            weaponChoice.appendChild(fists);
+            return;
+        }
+
+        weapons.forEach(weapon => {
+            const option = document.createElement('option');
+            option.value = weapon.id;
+            option.textContent = `${weapon.name} (Skill ${weapon.skillLevel}, +${weapon.combat.attackModifier} hit)`;
+            weaponChoice.appendChild(option);
+        });
+    }
+
+    function getSelectedWeapon() {
+        const chosen = weaponChoice.value;
+        const weapons = getCombatWeaponsFromInventory();
+        const selected = weapons.find(weapon => weapon.id === chosen);
+
+        if (selected) {
+            return selected;
+        }
+
+        return {
+            id: '__fists__',
+            name: 'Bare Hands',
+            skillLevel: 0,
+            combat: {
+                skill: null,
+                attackModifier: 0,
+                damage: [1, 3]
+            }
+        };
+    }
+
+    function updateDisplay() {
+        trollEndurance.textContent = foe.endurance;
+        heroEndurance.textContent = gameState.stats.endurance;
+    }
+
+    function endCombat(message, redirectTo) {
+        combatEnded = true;
+        attackButton.disabled = true;
+        fleeButton.disabled = true;
+        combatStatus.textContent = message;
+
+        if (redirectTo) {
+            setTimeout(() => {
+                window.location.href = `${redirectTo}.html`;
+            }, 1800);
+        }
+    }
+
+    attackButton.addEventListener('click', function() {
+        if (combatEnded) {
+            return;
+        }
+
+        const weapon = getSelectedWeapon();
+
+        const heroAttack = resolveAttackRound({
+            attackerSkill: weapon.skillLevel,
+            weaponAttackModifier: weapon.combat.attackModifier,
+            defenderDexterity: foe.dexterity,
+            defenderArmourModifier: foe.armourModifier,
+            damageRange: weapon.combat.damage
+        });
+
+        appendLog(`You attack with ${weapon.name}: ${heroAttack.attackRoll} vs ${foe.name} defence ${heroAttack.defenceRoll}.`);
+
+        if (heroAttack.hit) {
+            foe.endurance = Math.max(0, foe.endurance - heroAttack.damage);
+            appendLog(`Hit! ${weapon.name} deals ${heroAttack.damage} damage.`);
+        } else {
+            appendLog('Miss. The troll shrugs off your strike.');
+        }
+
+        updateDisplay();
+
+        if (foe.endurance <= 0) {
+            endCombat('The forest troll collapses unconscious. You are victorious.', 'forest');
+            return;
+        }
+
+        const foeAttack = resolveAttackRound({
+            attackerSkill: foe.attackSkill,
+            weaponAttackModifier: foe.weaponAttackModifier,
+            defenderDexterity: gameState.stats.dexterity,
+            defenderArmourModifier: heroArmourModifier,
+            damageRange: foe.damage
+        });
+
+        appendLog(`${foe.name} attacks: ${foeAttack.attackRoll} vs your defence ${foeAttack.defenceRoll}.`);
+
+        if (foeAttack.hit) {
+            modifyStat('endurance', -foeAttack.damage);
+            appendLog(`The troll hits you for ${foeAttack.damage} damage.`);
+        } else {
+            appendLog('You evade the troll strike.');
+        }
+
+        updateDisplay();
+
+        if (gameState.stats.endurance <= 0) {
+            endCombat('You are reduced to 0 endurance, fall unconscious, and are defeated.', 'start');
+        }
+    });
+
+    fleeButton.addEventListener('click', function() {
+        if (combatEnded) {
+            return;
+        }
+
+        appendLog('You flee into the forest before the troll can pin you down.');
+        endCombat('You escaped the forest troll.', 'forest');
+    });
+
+    renderWeapons();
+    updateDisplay();
+    appendLog('Combat begins. Choose a weapon and fight round by round or flee.');
+});
+</script>

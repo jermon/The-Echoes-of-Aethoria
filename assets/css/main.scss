@@ -420,3 +420,56 @@ h1 {
 .game-toast-warning {
     border-color: rgba($ember, 0.55);
 }
+
+#combat-panel {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba($rune-gold, 0.26);
+    background: rgba($stone, 0.62);
+
+    label {
+        display: block;
+        margin: 10px 0 6px;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    select,
+    button {
+        background: rgba(19, 15, 29, 0.86);
+        color: $parchment;
+        border: 1px solid rgba($rune-gold, 0.3);
+        border-radius: 8px;
+        padding: 8px 10px;
+    }
+
+    button {
+        cursor: pointer;
+    }
+}
+
+.combat-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+#combat-status {
+    margin: 12px 0;
+    color: $rune-gold;
+    font-weight: 700;
+}
+
+#combat-log {
+    max-height: 210px;
+    overflow-y: auto;
+    border-top: 1px solid rgba($rune-gold, 0.22);
+    padding-top: 10px;
+
+    p {
+        margin: 0 0 8px;
+        font-size: 0.9rem;
+    }
+}

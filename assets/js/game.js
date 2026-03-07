@@ -8,9 +8,27 @@ const INVENTORY_COMPARTMENTS = {
 };
 
 const ITEM_CATALOG = {
-    Bow: { weight: 3, space: 2 },
+    Bow: {
+        weight: 3,
+        space: 2,
+        combat: {
+            skill: 'Longbow Aim',
+            attackModifier: 1,
+            damage: [2, 6],
+            tags: ['ranged']
+        }
+    },
     Arrows: { weight: 1, space: 1 },
-    Dagger: { weight: 1, space: 1 },
+    Dagger: {
+        weight: 1,
+        space: 1,
+        combat: {
+            skill: 'Swordplay',
+            attackModifier: 2,
+            damage: [1, 6],
+            tags: ['light']
+        }
+    },
     'Healing Herbs': { weight: 1, space: 1 },
     Backpack: {
         weight: 2,
@@ -112,6 +130,80 @@ function generateItemId() {
 
 function getItemData(itemName) {
     return ITEM_CATALOG[itemName] || { weight: 1, space: 1 };
+}
+
+function rollDie(sides = 6) {
+    return Math.floor(Math.random() * sides) + 1;
+}
+
+function rollRange(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getSkillLevel(skillName) {
+    if (!skillName) {
+        return 0;
+    }
+
+    for (const generalSkill of SKILL_TREE) {
+        for (const branch of generalSkill.branches) {
+            const match = branch.skills.find(skill => skill.name === skillName);
+            if (match) {
+                return match.level;
+            }
+        }
+    }
+
+    return 0;
+}
+
+function getCombatWeaponsFromInventory() {
+    return getAllInventoryItems()
+        .map(item => {
+            const catalogData = getItemData(item.name);
+            const combat = item.combat || catalogData.combat;
+
+            if (!combat) {
+                return null;
+            }
+
+            return {
+                ...item,
+                combat,
+                skillLevel: getSkillLevel(combat.skill)
+            };
+        })
+        .filter(Boolean);
+}
+
+function resolveAttackRound({
+    attackerSkill = 0,
+    attackerRandom = rollDie(10),
+    weaponAttackModifier = 0,
+    defenderDexterity = 0,
+    defenderRandom = rollDie(10),
+    defenderArmourModifier = 0,
+    damageRange = [1, 4]
+}) {
+    const attackRoll = attackerSkill + attackerRandom + weaponAttackModifier;
+    const defenceRoll = defenderDexterity + defenderRandom + defenderArmourModifier;
+    const hit = attackRoll > defenceRoll;
+    const damage = hit ? rollRange(damageRange[0], damageRange[1]) : 0;
+
+    return {
+        attackRoll,
+        defenceRoll,
+        hit,
+        damage,
+        details: {
+            attackerSkill,
+            attackerRandom,
+            weaponAttackModifier,
+            defenderDexterity,
+            defenderRandom,
+            defenderArmourModifier
+        }
+    };
 }
 
 function getAllInventoryItems() {
