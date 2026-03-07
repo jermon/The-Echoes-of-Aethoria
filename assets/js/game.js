@@ -343,28 +343,30 @@ function setInventoryMessage(message) {
     }
 }
 
-function updateInventoryItemSelect() {
-    const itemSelect = document.getElementById('inventory-item-select');
+function addAvailableItem(itemName, targetCompartment = 'back') {
+    if (!itemName || hasItemByName(itemName)) {
+        return false;
+    }
 
-    if (!itemSelect) {
+    const itemData = getItemData(itemName);
+    const compartment = itemData.requiredCompartment || targetCompartment;
+    return addToInventory(itemName, compartment);
+}
+
+function handleInventoryDrop(event, targetCompartment) {
+    event.preventDefault();
+
+    const itemId = event.dataTransfer.getData('text/plain');
+    if (itemId) {
+        moveItem(itemId, targetCompartment);
         return;
     }
 
-    itemSelect.innerHTML = '';
+    const itemName = event.dataTransfer.getData('application/x-available-item')
+        || event.dataTransfer.getData('text/inventory-item-name');
 
-    Object.entries(ITEM_CATALOG).forEach(([itemName, itemData]) => {
-        const option = document.createElement('option');
-        option.value = itemName;
-        option.textContent = `${itemName} (W:${itemData.weight}, S:${itemData.space})`;
-        option.disabled = hasItemByName(itemName);
-        itemSelect.appendChild(option);
-    });
-
-    if (itemSelect.options.length > 0 && itemSelect.selectedOptions[0]?.disabled) {
-        const enabledOption = Array.from(itemSelect.options).find(option => !option.disabled);
-        if (enabledOption) {
-            itemSelect.value = enabledOption.value;
-        }
+    if (itemName) {
+        addAvailableItem(itemName, targetCompartment);
     }
 }
 
@@ -463,11 +465,7 @@ function updateInventoryDisplay() {
         });
 
         list.addEventListener('drop', event => {
-            event.preventDefault();
-            const itemId = event.dataTransfer.getData('text/plain');
-            if (itemId) {
-                moveItem(itemId, compartment);
-            }
+            handleInventoryDrop(event, compartment);
         });
 
         if (gameState.inventory[compartment].length > 0) {
@@ -515,7 +513,42 @@ function updateInventoryDisplay() {
         inventoryList.appendChild(section);
     });
 
-    updateInventoryItemSelect();
+    const availableItemsSection = document.createElement('section');
+    availableItemsSection.className = 'inventory-compartment inventory-available-items';
+
+    const availableHeading = document.createElement('h3');
+    availableHeading.textContent = 'Available Items';
+    availableItemsSection.appendChild(availableHeading);
+
+    const availableList = document.createElement('ul');
+    availableList.className = 'inventory-items inventory-items-available';
+
+    const availableItems = Object.entries(ITEM_CATALOG).filter(([itemName]) => !hasItemByName(itemName));
+
+    if (availableItems.length > 0) {
+        availableItems.forEach(([itemName, itemData]) => {
+            const listItem = document.createElement('li');
+            listItem.draggable = true;
+            listItem.className = 'available-item';
+            listItem.dataset.itemName = itemName;
+            listItem.textContent = `${itemName} (W:${itemData.weight}, S:${itemData.space})`;
+
+            listItem.addEventListener('dragstart', event => {
+                event.dataTransfer.setData('application/x-available-item', itemName);
+                event.dataTransfer.setData('text/inventory-item-name', itemName);
+            });
+
+            availableList.appendChild(listItem);
+        });
+    } else {
+        const emptyLine = document.createElement('li');
+        emptyLine.textContent = 'All known items are equipped.';
+        emptyLine.className = 'empty-slot';
+        availableList.appendChild(emptyLine);
+    }
+
+    availableItemsSection.appendChild(availableList);
+    inventoryList.appendChild(availableItemsSection);
 }
 
 function updateStatsDisplay() {
@@ -646,7 +679,6 @@ function loadGame() {
         gameState.stats = loadedState.stats || gameState.stats;
     }
 
-    updateInventoryItemSelect();
     updateInventoryDisplay();
     updateStatsDisplay();
     updateSkillsDisplay();
@@ -693,37 +725,11 @@ function setupEdgePopups() {
 
 function setupInventoryPopup() {
     const popup = document.getElementById('inventory-popup');
-    const addForm = document.getElementById('inventory-add-form');
-    const itemSelect = document.getElementById('inventory-item-select');
-    const compartmentSelect = document.getElementById('inventory-compartment-select');
 
-    if (!popup || !addForm || !itemSelect || !compartmentSelect) {
+    if (!popup) {
         return;
     }
-
-    itemSelect.addEventListener('change', () => {
-        const selectedItemData = getItemData(itemSelect.value);
-
-        if (selectedItemData.requiredCompartment) {
-            compartmentSelect.value = selectedItemData.requiredCompartment;
-        }
-    });
-
-    addForm.addEventListener('submit', event => {
-        event.preventDefault();
-
-        const itemName = itemSelect.value;
-        const selectedItemData = getItemData(itemName);
-        const compartment = selectedItemData.requiredCompartment || compartmentSelect.value;
-
-        if (selectedItemData.requiredCompartment) {
-            compartmentSelect.value = selectedItemData.requiredCompartment;
-        }
-
-        addToInventory(itemName, compartment);
-    });
 }
-
 function setupSkillsPopup() {
     const popup = document.getElementById('skills-popup');
 
