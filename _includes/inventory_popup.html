@@ -1,21 +1,7 @@
 <div id="inventory-popup" class="popup">
     <div class="popup-content">
         <h2>Inventory</h2>
-        <form id="inventory-add-form">
-            <label for="inventory-item-select">Item</label>
-            <select id="inventory-item-select"></select>
-
-            <label for="inventory-compartment-select">Compartment</label>
-            <select id="inventory-compartment-select">
-                <option value="back">Back</option>
-                <option value="belt">Belt</option>
-                <option value="hands">Hands</option>
-                <option value="armour">Armour</option>
-            </select>
-
-            <button type="submit">Add Item</button>
-        </form>
-
+        <p class="inventory-drag-helper">Drag an available item into a compartment to equip it.</p>
         <p id="inventory-message" aria-live="polite"></p>
         <div id="inventory-list"></div>
     </div>
