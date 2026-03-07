@@ -1,0 +1,43 @@
+- name: Bow
+  weight: 3
+  space: 2
+  combat:
+    skill: Longbow Aim
+    attackModifier: 1
+    damage: [2, 6]
+    tags: [ranged]
+
+- name: Arrows
+  weight: 1
+  space: 1
+
+- name: Dagger
+  weight: 1
+  space: 1
+  combat:
+    skill: Swordplay
+    attackModifier: 2
+    damage: [1, 6]
+    tags: [light]
+
+- name: Healing Herbs
+  weight: 1
+  space: 1
+
+- name: Backpack
+  weight: 2
+  space: 2
+  requiredCompartment: back
+  upgrade:
+    compartment: back
+    maxWeight: 6
+    maxSpace: 4
+
+- name: Mysterious Dagger
+  weight: 1
+  space: 1
+  combat:
+    skill: Swordplay
+    attackModifier: 3
+    damage: [2, 6]
+    tags: [light, mystical]

@@ -18,6 +18,12 @@
         {% include choices.html %}
     </div>
     {% include inventory_popup.html %}
+    <script>
+        window.GAME_DATA = {
+            items: {{ site.data.items | jsonify }},
+            foes: {{ site.data.foes | jsonify }}
+        };
+    </script>
     <script src="{{ '/assets/js/game.js' | relative_url }}"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@ const INVENTORY_COMPARTMENTS = {
     armour: { label: 'Armour', maxWeight: 10, maxSpace: 6 }
 };
 
-const ITEM_CATALOG = {
+const DEFAULT_ITEM_CATALOG = {
     Bow: {
         weight: 3,
         space: 2,
@@ -41,6 +41,21 @@ const ITEM_CATALOG = {
         }
     }
 };
+
+const DATA_ITEMS = Array.isArray(window.GAME_DATA?.items) ? window.GAME_DATA.items : [];
+const ITEM_CATALOG = DATA_ITEMS.length
+    ? DATA_ITEMS.reduce((catalog, item) => {
+        if (!item?.name) {
+            return catalog;
+        }
+
+        const { name, ...itemData } = item;
+        catalog[name] = itemData;
+        return catalog;
+    }, {})
+    : DEFAULT_ITEM_CATALOG;
+
+const DATA_FOES = Array.isArray(window.GAME_DATA?.foes) ? window.GAME_DATA.foes : [];
 
 const SKILL_TREE = [
     {
@@ -130,6 +145,11 @@ function generateItemId() {
 
 function getItemData(itemName) {
     return ITEM_CATALOG[itemName] || { weight: 1, space: 1 };
+}
+
+function getFoeData(foeIdOrName) {
+    const foe = DATA_FOES.find(entry => entry.id === foeIdOrName || entry.name === foeIdOrName);
+    return foe || null;
 }
 
 function rollDie(sides = 6) {
@@ -733,3 +753,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.showGlideAlert = showGlideAlert;
+window.getFoeData = getFoeData;

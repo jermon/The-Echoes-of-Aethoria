@@ -1,0 +1,8 @@
+- id: forest-troll
+  name: Forest Troll
+  endurance: 18
+  dexterity: 8
+  armourModifier: 2
+  attackSkill: 5
+  weaponAttackModifier: 1
+  damage: [2, 5]
