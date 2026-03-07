@@ -103,12 +103,28 @@ const gameState = {
     }
 };
 
+function generateItemId() {
+    return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function getItemData(itemName) {
     return ITEM_CATALOG[itemName] || { weight: 1, space: 1 };
 }
 
 function getAllInventoryItems() {
     return Object.values(gameState.inventory).flat();
+}
+
+function getTotalCarriedWeight() {
+    return getAllInventoryItems().reduce((total, item) => total + item.weight, 0);
+}
+
+function getStrengthWeightLimit() {
+    return Math.max(0, gameState.stats.strength);
+}
+
+function hasItemByName(itemName) {
+    return getAllInventoryItems().some(item => item.name === itemName);
 }
 
 function getCompartmentCapacity(compartment) {
@@ -139,10 +155,13 @@ function getCompartmentUsage(compartment) {
 function canAddItemToCompartment(itemData, compartment) {
     const capacity = getCompartmentCapacity(compartment);
     const usage = getCompartmentUsage(compartment);
+    const weightLimit = getStrengthWeightLimit();
+    const totalWeight = getTotalCarriedWeight();
 
     return {
         fitsWeight: usage.weight + itemData.weight <= capacity.maxWeight,
-        fitsSpace: usage.space + itemData.space <= capacity.maxSpace
+        fitsSpace: usage.space + itemData.space <= capacity.maxSpace,
+        fitsStrength: totalWeight + itemData.weight <= weightLimit
     };
 }
 
@@ -176,8 +195,14 @@ function showGlideAlert(message, type = 'info') {
 }
 
 function addToInventory(itemName, preferredCompartment = 'back') {
+    if (hasItemByName(itemName)) {
+        setInventoryMessage(`${itemName} is already equipped in your inventory.`);
+        showGlideAlert(`${itemName} is already equipped.`, 'warning');
+        return false;
+    }
+
     const itemData = getItemData(itemName);
-    const item = { name: itemName, ...itemData };
+    const item = { id: generateItemId(), name: itemName, ...itemData };
 
     const compartmentsToTry = [
         preferredCompartment,
@@ -186,11 +211,11 @@ function addToInventory(itemName, preferredCompartment = 'back') {
 
     const fittingCompartment = compartmentsToTry.find(compartment => {
         const fitCheck = canAddItemToCompartment(item, compartment);
-        return fitCheck.fitsWeight && fitCheck.fitsSpace;
+        return fitCheck.fitsWeight && fitCheck.fitsSpace && fitCheck.fitsStrength;
     });
 
     if (!fittingCompartment) {
-        setInventoryMessage(`No room for ${itemName}. It exceeds space or weight limits.`);
+        setInventoryMessage(`No room for ${itemName}. It exceeds space, compartment weight, or strength limits.`);
         showGlideAlert(`No room for ${itemName}.`, 'warning');
         return false;
     }
@@ -223,8 +248,68 @@ function updateInventoryItemSelect() {
         const option = document.createElement('option');
         option.value = itemName;
         option.textContent = `${itemName} (W:${itemData.weight}, S:${itemData.space})`;
+        option.disabled = hasItemByName(itemName);
         itemSelect.appendChild(option);
     });
+
+    if (itemSelect.options.length > 0 && itemSelect.selectedOptions[0]?.disabled) {
+        const enabledOption = Array.from(itemSelect.options).find(option => !option.disabled);
+        if (enabledOption) {
+            itemSelect.value = enabledOption.value;
+        }
+    }
+}
+
+function moveItem(itemId, targetCompartment) {
+    let sourceCompartment = null;
+    let itemIndex = -1;
+
+    Object.keys(gameState.inventory).forEach(compartment => {
+        const index = gameState.inventory[compartment].findIndex(item => item.id === itemId);
+        if (index !== -1) {
+            sourceCompartment = compartment;
+            itemIndex = index;
+        }
+    });
+
+    if (sourceCompartment === null || itemIndex === -1 || sourceCompartment === targetCompartment) {
+        return false;
+    }
+
+    const [item] = gameState.inventory[sourceCompartment].splice(itemIndex, 1);
+    const fitCheck = canAddItemToCompartment(item, targetCompartment);
+
+    if (!(fitCheck.fitsWeight && fitCheck.fitsSpace && fitCheck.fitsStrength)) {
+        gameState.inventory[sourceCompartment].splice(itemIndex, 0, item);
+        setInventoryMessage(`Cannot move ${item.name} to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
+        showGlideAlert('Move blocked by carrying limits.', 'warning');
+        updateInventoryDisplay();
+        return false;
+    }
+
+    gameState.inventory[targetCompartment].push(item);
+    setInventoryMessage(`${item.name} moved to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
+    showGlideAlert(`${item.name} moved.`, 'success');
+    updateInventoryDisplay();
+    saveGame();
+    return true;
+}
+
+function discardItem(itemId) {
+    for (const compartment of Object.keys(gameState.inventory)) {
+        const index = gameState.inventory[compartment].findIndex(item => item.id === itemId);
+
+        if (index !== -1) {
+            const [item] = gameState.inventory[compartment].splice(index, 1);
+            setInventoryMessage(`${item.name} discarded.`);
+            showGlideAlert(`${item.name} discarded.`, 'info');
+            updateInventoryDisplay();
+            saveGame();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function updateInventoryDisplay() {
@@ -236,41 +321,84 @@ function updateInventoryDisplay() {
 
     inventoryList.innerHTML = '';
 
+    const summary = document.createElement('p');
+    summary.className = 'inventory-summary';
+    summary.textContent = `Total weight: ${getTotalCarriedWeight()}/${getStrengthWeightLimit()} (limited by Strength)`;
+    inventoryList.appendChild(summary);
+
     Object.keys(INVENTORY_COMPARTMENTS).forEach(compartment => {
         const capacity = getCompartmentCapacity(compartment);
         const usage = getCompartmentUsage(compartment);
 
         const section = document.createElement('section');
         section.className = 'inventory-compartment';
+        section.dataset.compartment = compartment;
 
         const heading = document.createElement('h3');
         heading.textContent = `${INVENTORY_COMPARTMENTS[compartment].label} (${usage.space}/${capacity.maxSpace} space, ${usage.weight}/${capacity.maxWeight} weight)`;
         section.appendChild(heading);
 
         const list = document.createElement('ul');
+        list.className = 'inventory-items';
 
-        if (gameState.inventory[compartment].length === 0) {
-            const emptyItem = document.createElement('li');
-            emptyItem.textContent = 'Empty';
-            emptyItem.className = 'empty-slot';
-            list.appendChild(emptyItem);
-        } else {
+        list.addEventListener('dragover', event => {
+            event.preventDefault();
+        });
+
+        list.addEventListener('drop', event => {
+            event.preventDefault();
+            const itemId = event.dataTransfer.getData('text/plain');
+            if (itemId) {
+                moveItem(itemId, compartment);
+            }
+        });
+
+        if (gameState.inventory[compartment].length > 0) {
             gameState.inventory[compartment].forEach(item => {
                 const listItem = document.createElement('li');
+                listItem.draggable = true;
+                listItem.dataset.itemId = item.id;
                 let label = `${item.name} (W:${item.weight}, S:${item.space})`;
 
                 if (item.upgrade) {
                     label += ' • expands carrying capacity';
                 }
 
-                listItem.textContent = label;
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = label;
+
+                const discardButton = document.createElement('button');
+                discardButton.type = 'button';
+                discardButton.className = 'inventory-discard-btn';
+                discardButton.textContent = 'Drop';
+                discardButton.addEventListener('click', () => {
+                    discardItem(item.id);
+                });
+
+                listItem.addEventListener('dragstart', event => {
+                    event.dataTransfer.setData('text/plain', item.id);
+                });
+
+                listItem.appendChild(labelSpan);
+                listItem.appendChild(discardButton);
                 list.appendChild(listItem);
             });
+        }
+
+        const emptyLines = Math.max(capacity.maxSpace - usage.space, 0);
+
+        for (let i = 0; i < emptyLines; i += 1) {
+            const emptyLine = document.createElement('li');
+            emptyLine.textContent = '────────';
+            emptyLine.className = 'empty-slot empty-slot-line';
+            list.appendChild(emptyLine);
         }
 
         section.appendChild(list);
         inventoryList.appendChild(section);
     });
+
+    updateInventoryItemSelect();
 }
 
 function updateStatsDisplay() {
@@ -373,7 +501,7 @@ function migrateLegacyInventory(legacyInventory) {
 
     legacyInventory.forEach(itemName => {
         const itemData = getItemData(itemName);
-        migrated.back.push({ name: itemName, ...itemData });
+        migrated.back.push({ id: generateItemId(), name: itemName, ...itemData });
     });
 
     return migrated;
@@ -390,6 +518,13 @@ function loadGame() {
         } else {
             gameState.inventory = loadedState.inventory || gameState.inventory;
         }
+
+        Object.keys(gameState.inventory).forEach(compartment => {
+            gameState.inventory[compartment] = (gameState.inventory[compartment] || []).map(item => ({
+                id: item.id || generateItemId(),
+                ...item
+            }));
+        });
 
         gameState.stats = loadedState.stats || gameState.stats;
     }
