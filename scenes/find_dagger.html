@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.textContent.includes('Take the dagger')) {
                 e.preventDefault();
                 addToInventory('Mysterious Dagger');
-                alert('You have added the Mysterious Dagger to your inventory!');
+                showGlideAlert('You have added the Mysterious Dagger to your inventory!', 'success');
                 window.location.href = 'take_dagger.html';
             }
         });

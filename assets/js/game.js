@@ -26,22 +26,64 @@ const SKILL_TREE = [
     {
         name: 'Combat',
         branches: [
-            { name: 'Melee', skills: ['Swordplay', 'Shield Bash', 'Riposte'] },
-            { name: 'Ranged', skills: ['Longbow Aim', 'Quick Draw', 'Piercing Shot'] }
+            {
+                name: 'Melee',
+                skills: [
+                    { name: 'Swordplay', level: 4 },
+                    { name: 'Shield Bash', level: 3 },
+                    { name: 'Riposte', level: 2 }
+                ]
+            },
+            {
+                name: 'Ranged',
+                skills: [
+                    { name: 'Longbow Aim', level: 5 },
+                    { name: 'Quick Draw', level: 3 },
+                    { name: 'Piercing Shot', level: 4 }
+                ]
+            }
         ]
     },
     {
         name: 'Survival',
         branches: [
-            { name: 'Tracking', skills: ['Trail Reading', 'Scent Marking', 'Silent Pursuit'] },
-            { name: 'Fieldcraft', skills: ['Camp Setup', 'Foraging', 'Herbal Remedy'] }
+            {
+                name: 'Tracking',
+                skills: [
+                    { name: 'Trail Reading', level: 4 },
+                    { name: 'Scent Marking', level: 2 },
+                    { name: 'Silent Pursuit', level: 3 }
+                ]
+            },
+            {
+                name: 'Fieldcraft',
+                skills: [
+                    { name: 'Camp Setup', level: 4 },
+                    { name: 'Foraging', level: 5 },
+                    { name: 'Herbal Remedy', level: 3 }
+                ]
+            }
         ]
     },
     {
         name: 'Mysticism',
         branches: [
-            { name: 'Runes', skills: ['Glyph Etching', 'Ward Sigils', 'Resonance Binding'] },
-            { name: 'Mind Arts', skills: ['Focus Trance', 'Echo Sense', 'Spirit Lure'] }
+            {
+                name: 'Runes',
+                skills: [
+                    { name: 'Glyph Etching', level: 2 },
+                    { name: 'Ward Sigils', level: 3 },
+                    { name: 'Resonance Binding', level: 1 }
+                ]
+            },
+            {
+                name: 'Mind Arts',
+                skills: [
+                    { name: 'Focus Trance', level: 4 },
+                    { name: 'Echo Sense', level: 5 },
+                    { name: 'Spirit Lure', level: 2 }
+                ]
+            }
         ]
     }
 ];
@@ -104,6 +146,35 @@ function canAddItemToCompartment(itemData, compartment) {
     };
 }
 
+function showGlideAlert(message, type = 'info') {
+    const containerId = 'game-toast-container';
+    let container = document.getElementById(containerId);
+
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `game-toast game-toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 340);
+    }, 2500);
+}
+
 function addToInventory(itemName, preferredCompartment = 'back') {
     const itemData = getItemData(itemName);
     const item = { name: itemName, ...itemData };
@@ -120,11 +191,13 @@ function addToInventory(itemName, preferredCompartment = 'back') {
 
     if (!fittingCompartment) {
         setInventoryMessage(`No room for ${itemName}. It exceeds space or weight limits.`);
+        showGlideAlert(`No room for ${itemName}.`, 'warning');
         return false;
     }
 
     gameState.inventory[fittingCompartment].push(item);
     setInventoryMessage(`${itemName} added to ${INVENTORY_COMPARTMENTS[fittingCompartment].label}.`);
+    showGlideAlert(`${itemName} added to ${INVENTORY_COMPARTMENTS[fittingCompartment].label}.`, 'success');
     updateInventoryDisplay();
     saveGame();
     return true;
@@ -255,7 +328,16 @@ function updateSkillsDisplay() {
             branch.skills.forEach(specificSkill => {
                 const specificItem = document.createElement('li');
                 specificItem.className = 'skill-specific';
-                specificItem.textContent = specificSkill;
+
+                const specificName = document.createElement('span');
+                specificName.textContent = specificSkill.name;
+
+                const specificLevel = document.createElement('span');
+                specificLevel.className = 'skill-level';
+                specificLevel.textContent = `Lvl ${specificSkill.level}/6`;
+
+                specificItem.appendChild(specificName);
+                specificItem.appendChild(specificLevel);
                 specificList.appendChild(specificItem);
             });
 
@@ -329,24 +411,44 @@ function handle404() {
     }
 }
 
-function setupInventoryPopup() {
-    const openBtn = document.getElementById('open-inventory');
-    const closeBtn = document.getElementById('close-inventory');
-    const popup = document.getElementById('inventory-popup');
-    const addForm = document.getElementById('inventory-add-form');
+function setupEdgePopups() {
+    const inventoryPopup = document.getElementById('inventory-popup');
+    const skillsPopup = document.getElementById('skills-popup');
 
-    openBtn.addEventListener('click', () => {
-        popup.classList.add('show');
-    });
+    if (!inventoryPopup || !skillsPopup) {
+        return;
+    }
 
-    closeBtn.addEventListener('click', () => {
-        popup.classList.remove('show');
+    document.addEventListener('mousemove', event => {
+        const edgeThreshold = 24;
+
+        if (event.clientX <= edgeThreshold) {
+            inventoryPopup.classList.add('show');
+        }
+
+        if (event.clientX >= window.innerWidth - edgeThreshold) {
+            skillsPopup.classList.add('show');
+        }
     });
 
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
-            popup.classList.remove('show');
+            inventoryPopup.classList.remove('show');
+            skillsPopup.classList.remove('show');
         }
+    });
+}
+
+function setupInventoryPopup() {
+    const popup = document.getElementById('inventory-popup');
+    const addForm = document.getElementById('inventory-add-form');
+
+    if (!popup || !addForm) {
+        return;
+    }
+
+    popup.addEventListener('mouseleave', () => {
+        popup.classList.remove('show');
     });
 
     addForm.addEventListener('submit', event => {
@@ -360,32 +462,21 @@ function setupInventoryPopup() {
 }
 
 function setupSkillsPopup() {
-    const openBtn = document.getElementById('open-skills');
-    const closeBtn = document.getElementById('close-skills');
     const popup = document.getElementById('skills-popup');
 
-    if (!openBtn || !closeBtn || !popup) {
+    if (!popup) {
         return;
     }
 
-    openBtn.addEventListener('click', () => {
-        popup.classList.add('show');
-    });
-
-    closeBtn.addEventListener('click', () => {
+    popup.addEventListener('mouseleave', () => {
         popup.classList.remove('show');
-    });
-
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            popup.classList.remove('show');
-        }
     });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     loadGame();
     handle404();
+    setupEdgePopups();
     setupInventoryPopup();
     setupSkillsPopup();
 
@@ -397,3 +488,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+window.showGlideAlert = showGlideAlert;
