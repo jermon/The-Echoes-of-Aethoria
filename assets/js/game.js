@@ -30,10 +30,19 @@ function updateInventoryDisplay() {
 }
 
 function updateStatsDisplay() {
+    const maxDisplayValue = 20;
+
     for (const stat in gameState.stats) {
-        const element = document.getElementById(stat);
-        if (element) {
-            element.textContent = gameState.stats[stat];
+        const fillElement = document.getElementById(stat);
+        const valueElement = document.getElementById(`${stat}-value`);
+
+        if (fillElement) {
+            const percent = Math.max(0, Math.min((gameState.stats[stat] / maxDisplayValue) * 100, 100));
+            fillElement.style.width = `${percent}%`;
+        }
+
+        if (valueElement) {
+            valueElement.textContent = gameState.stats[stat];
         }
     }
 }
@@ -83,6 +92,12 @@ function setupInventoryPopup() {
 
     closeBtn.addEventListener('click', () => {
         popup.classList.remove('show');
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            popup.classList.remove('show');
+        }
     });
 }
 
