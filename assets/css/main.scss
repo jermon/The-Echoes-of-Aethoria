@@ -310,6 +310,18 @@ h1 {
 
 #inventory-list {
     margin: 14px 0 18px;
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    padding-right: 6px;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($rune-gold, 0.45);
+        border-radius: 999px;
+    }
 
     .inventory-summary {
         margin: 0 0 14px;
