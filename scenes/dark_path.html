@@ -6,7 +6,7 @@ title: The Dark Path
 The darker path narrows into a shadow-choked corridor of ancient trees. A hulking forest troll drags itself from the undergrowth, blocking your way with a guttural roar.
 
 <div id="combat-panel">
-    <p><strong>Forest Troll Endurance:</strong> <span id="troll-endurance">18</span></p>
+    <p><strong><span id="foe-name">Foe</span> Endurance:</strong> <span id="troll-endurance">0</span></p>
     <p><strong>Your Endurance:</strong> <span id="hero-endurance"></span></p>
     <label for="weapon-choice">Choose your weapon:</label>
     <select id="weapon-choice"></select>
@@ -20,7 +20,7 @@ The darker path narrows into a shadow-choked corridor of ancient trees. A hulkin
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const foe = {
+    const foeTemplate = getFoeData('forest-troll') || {
         name: 'Forest Troll',
         endurance: 18,
         dexterity: 8,
@@ -29,10 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
         weaponAttackModifier: 1,
         damage: [2, 5]
     };
+    const foe = { ...foeTemplate };
 
     const weaponChoice = document.getElementById('weapon-choice');
     const attackButton = document.getElementById('attack-button');
     const fleeButton = document.getElementById('flee-button');
+    const foeName = document.getElementById('foe-name');
     const trollEndurance = document.getElementById('troll-endurance');
     const heroEndurance = document.getElementById('hero-endurance');
     const combatStatus = document.getElementById('combat-status');
@@ -89,6 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateDisplay() {
+        if (foeName) {
+            foeName.textContent = foe.name;
+        }
+
         trollEndurance.textContent = foe.endurance;
         heroEndurance.textContent = gameState.stats.endurance;
     }
