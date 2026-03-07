@@ -180,6 +180,7 @@ h1 {
 
 .popup-content {
     height: 100%;
+    overflow: hidden;
     background: linear-gradient(180deg, #20182f 0%, #120e1d 100%);
     border-right: 1px solid rgba($rune-gold, 0.35);
     padding: 22px;
@@ -224,41 +225,21 @@ h1 {
     margin: 0 0 12px;
 }
 
-#open-inventory,
-#close-inventory,
-#open-skills,
-#close-skills {
-    background: linear-gradient(180deg, $rune-gold 0%, $rune-gold-dark 100%);
-    color: #191210;
-    border: 1px solid rgba(#f5d689, 0.5);
-    padding: 10px 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    transition: filter 0.2s ease;
-
-    &:hover {
-        filter: brightness(1.08);
-    }
-}
-
-#open-inventory {
-    position: fixed;
-    top: 22px;
-    left: 24px;
-    z-index: 220;
-}
-
-#open-skills {
-    position: static;
-    padding: 8px 12px;
-    font-size: 0.75rem;
-}
 
 #skills-tree {
     margin: 14px 0 18px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    padding-right: 8px;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($rune-gold, 0.45);
+        border-radius: 999px;
+    }
 
     .skills-list {
         list-style: none;
@@ -307,6 +288,17 @@ h1 {
         background: rgba(20, 20, 33, 0.72);
         font-weight: 400;
         font-size: 0.86rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .skill-level {
+        color: $rune-gold;
+        font-size: 0.78rem;
+        font-weight: 700;
+        white-space: nowrap;
     }
 }
 
@@ -350,4 +342,42 @@ h1 {
             font-style: italic;
         }
     }
+}
+
+
+#game-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 500;
+    display: grid;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.game-toast {
+    min-width: 220px;
+    max-width: min(360px, 80vw);
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba($rune-gold, 0.28);
+    background: linear-gradient(180deg, rgba(34, 24, 49, 0.97) 0%, rgba(17, 12, 26, 0.97) 100%);
+    color: $parchment;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.34s ease, opacity 0.34s ease;
+}
+
+.game-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.game-toast-success {
+    border-color: rgba($mana, 0.6);
+}
+
+.game-toast-warning {
+    border-color: rgba($ember, 0.55);
 }
