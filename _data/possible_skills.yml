@@ -1,0 +1,70 @@
+# Catalog of potential player skills for Lyra.
+# Skills are grouped by discipline, then by branch.
+- discipline: Combat
+  branches:
+    - name: Melee
+      skills:
+        - name: Swordplay
+          description: Precision blade technique that improves hit chance and control in close-quarters duels.
+        - name: Shield Bash
+          description: Offensive shield maneuver used to stagger enemies and open them to follow-up attacks.
+        - name: Riposte
+          description: Counterattack discipline that converts successful defenses into immediate strikes.
+        - name: Whirlwind Strike
+          description: Spinning melee assault designed to pressure multiple adjacent foes.
+    - name: Ranged
+      skills:
+        - name: Longbow Aim
+          description: Core archery training for accuracy and stability at medium-to-long range.
+        - name: Quick Draw
+          description: Fast ready-and-release technique that shortens time between ranged attacks.
+        - name: Piercing Shot
+          description: Focused arrow placement that improves effectiveness against armored targets.
+        - name: Hawk Eye
+          description: Keen-sight discipline that improves target acquisition and weak-point spotting.
+
+- discipline: Survival
+  branches:
+    - name: Tracking
+      skills:
+        - name: Trail Reading
+          description: Ability to interpret footprints, disturbances, and subtle terrain clues.
+        - name: Scent Marking
+          description: Fieldcraft method for identifying route markers, prey trails, and territorial signs.
+        - name: Silent Pursuit
+          description: Stealth tracking technique that minimizes noise and visible movement while following targets.
+        - name: Beast Lore
+          description: Knowledge of creature behavior used to predict movement patterns and avoid ambushes.
+    - name: Fieldcraft
+      skills:
+        - name: Camp Setup
+          description: Practical expertise in building safe camps, lookout points, and temporary defenses.
+        - name: Foraging
+          description: Skill in locating edible plants, clean water sources, and useful wilderness materials.
+        - name: Herbal Remedy
+          description: Preparation of curatives and poultices from gathered herbs for recovery and treatment.
+        - name: Weather Sense
+          description: Environmental awareness that anticipates storms, temperature shifts, and travel hazards.
+
+- discipline: Mysticism
+  branches:
+    - name: Runes
+      skills:
+        - name: Glyph Etching
+          description: Foundational rune-scribing practice for creating basic magical inscriptions.
+        - name: Ward Sigils
+          description: Protective sigil craft that reinforces defenses against hostile magical effects.
+        - name: Resonance Binding
+          description: Arcane attunement technique used to anchor and stabilize volatile energies.
+        - name: Rune Weaving
+          description: Advanced rune composition that combines multiple inscriptions into layered effects.
+    - name: Mind Arts
+      skills:
+        - name: Focus Trance
+          description: Meditative discipline that sharpens concentration and sustains mental resilience.
+        - name: Echo Sense
+          description: Extrasensory perception used to detect hidden presences and magical traces nearby.
+        - name: Spirit Lure
+          description: Mystical influence technique that draws and redirects wandering spirit entities.
+        - name: Astral Recall
+          description: Mnemonic rite that restores fragmented memories and improves lore recollection.
