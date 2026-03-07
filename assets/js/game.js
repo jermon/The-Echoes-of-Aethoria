@@ -123,20 +123,44 @@ const SKILL_TREE = [
     }
 ];
 
+const DEFAULT_INVENTORY = {
+    back: [],
+    belt: [],
+    hands: [],
+    armour: []
+};
+
+const DEFAULT_STATS = {
+    strength: 10,
+    endurance: 10,
+    dexterity: 10,
+    intelligence: 10,
+    wisdom: 10
+};
+
+function cloneSkills() {
+    return SKILL_TREE.map(generalSkill => ({
+        ...generalSkill,
+        branches: generalSkill.branches.map(branch => ({
+            ...branch,
+            skills: branch.skills.map(skill => ({ ...skill }))
+        }))
+    }));
+}
+
+function cloneInventory() {
+    return {
+        back: [...DEFAULT_INVENTORY.back],
+        belt: [...DEFAULT_INVENTORY.belt],
+        hands: [...DEFAULT_INVENTORY.hands],
+        armour: [...DEFAULT_INVENTORY.armour]
+    };
+}
+
 const gameState = {
-    inventory: {
-        back: [],
-        belt: [],
-        hands: [],
-        armour: []
-    },
-    stats: {
-        strength: 10,
-        endurance: 10,
-        dexterity: 10,
-        intelligence: 10,
-        wisdom: 10
-    }
+    inventory: cloneInventory(),
+    stats: { ...DEFAULT_STATS },
+    skills: cloneSkills()
 };
 
 function generateItemId() {
@@ -165,7 +189,7 @@ function getSkillLevel(skillName) {
         return 0;
     }
 
-    for (const generalSkill of SKILL_TREE) {
+    for (const generalSkill of gameState.skills) {
         for (const branch of generalSkill.branches) {
             const match = branch.skills.find(skill => skill.name === skillName);
             if (match) {
@@ -581,7 +605,7 @@ function updateSkillsDisplay() {
     const rootList = document.createElement('ul');
     rootList.className = 'skills-list skills-list-general';
 
-    SKILL_TREE.forEach(generalSkill => {
+    gameState.skills.forEach(generalSkill => {
         const generalItem = document.createElement('li');
         generalItem.className = 'skill-general';
 
@@ -677,11 +701,26 @@ function loadGame() {
         });
 
         gameState.stats = loadedState.stats || gameState.stats;
+        gameState.skills = loadedState.skills || gameState.skills;
     }
 
     updateInventoryDisplay();
     updateStatsDisplay();
     updateSkillsDisplay();
+}
+
+function resetGameToDefaults() {
+    gameState.inventory = cloneInventory();
+    gameState.stats = { ...DEFAULT_STATS };
+    gameState.skills = cloneSkills();
+    saveGame();
+    updateInventoryDisplay();
+    updateStatsDisplay();
+    updateSkillsDisplay();
+}
+
+function isStartPage() {
+    return /\/(?:scenes\/)?start(?:\.html)?\/?$/.test(window.location.pathname);
 }
 
 function handle404() {
@@ -743,7 +782,11 @@ function setupSkillsPopup() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadGame();
+    if (isStartPage()) {
+        resetGameToDefaults();
+    } else {
+        loadGame();
+    }
     handle404();
     setupEdgePopups();
     setupInventoryPopup();
