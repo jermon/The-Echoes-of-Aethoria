@@ -22,6 +22,30 @@ const ITEM_CATALOG = {
     }
 };
 
+const SKILL_TREE = [
+    {
+        name: 'Combat',
+        branches: [
+            { name: 'Melee', skills: ['Swordplay', 'Shield Bash', 'Riposte'] },
+            { name: 'Ranged', skills: ['Longbow Aim', 'Quick Draw', 'Piercing Shot'] }
+        ]
+    },
+    {
+        name: 'Survival',
+        branches: [
+            { name: 'Tracking', skills: ['Trail Reading', 'Scent Marking', 'Silent Pursuit'] },
+            { name: 'Fieldcraft', skills: ['Camp Setup', 'Foraging', 'Herbal Remedy'] }
+        ]
+    },
+    {
+        name: 'Mysticism',
+        branches: [
+            { name: 'Runes', skills: ['Glyph Etching', 'Ward Sigils', 'Resonance Binding'] },
+            { name: 'Mind Arts', skills: ['Focus Trance', 'Echo Sense', 'Spirit Lure'] }
+        ]
+    }
+];
+
 const gameState = {
     inventory: {
         back: [],
@@ -194,6 +218,58 @@ function updateStatsDisplay() {
     }
 }
 
+function updateSkillsDisplay() {
+    const skillsTreeElement = document.getElementById('skills-tree');
+
+    if (!skillsTreeElement) {
+        return;
+    }
+
+    skillsTreeElement.innerHTML = '';
+
+    const rootList = document.createElement('ul');
+    rootList.className = 'skills-list skills-list-general';
+
+    SKILL_TREE.forEach(generalSkill => {
+        const generalItem = document.createElement('li');
+        generalItem.className = 'skill-general';
+
+        const generalLabel = document.createElement('span');
+        generalLabel.textContent = generalSkill.name;
+        generalItem.appendChild(generalLabel);
+
+        const branchList = document.createElement('ul');
+        branchList.className = 'skills-list skills-list-branch';
+
+        generalSkill.branches.forEach(branch => {
+            const branchItem = document.createElement('li');
+            branchItem.className = 'skill-branch';
+
+            const branchLabel = document.createElement('span');
+            branchLabel.textContent = branch.name;
+            branchItem.appendChild(branchLabel);
+
+            const specificList = document.createElement('ul');
+            specificList.className = 'skills-list skills-list-specific';
+
+            branch.skills.forEach(specificSkill => {
+                const specificItem = document.createElement('li');
+                specificItem.className = 'skill-specific';
+                specificItem.textContent = specificSkill;
+                specificList.appendChild(specificItem);
+            });
+
+            branchItem.appendChild(specificList);
+            branchList.appendChild(branchItem);
+        });
+
+        generalItem.appendChild(branchList);
+        rootList.appendChild(generalItem);
+    });
+
+    skillsTreeElement.appendChild(rootList);
+}
+
 function modifyStat(stat, amount) {
     if (Object.prototype.hasOwnProperty.call(gameState.stats, stat)) {
         gameState.stats[stat] = Math.max(0, gameState.stats[stat] + amount);
@@ -239,6 +315,7 @@ function loadGame() {
     updateInventoryItemSelect();
     updateInventoryDisplay();
     updateStatsDisplay();
+    updateSkillsDisplay();
 }
 
 function handle404() {
@@ -282,10 +359,35 @@ function setupInventoryPopup() {
     });
 }
 
+function setupSkillsPopup() {
+    const openBtn = document.getElementById('open-skills');
+    const closeBtn = document.getElementById('close-skills');
+    const popup = document.getElementById('skills-popup');
+
+    if (!openBtn || !closeBtn || !popup) {
+        return;
+    }
+
+    openBtn.addEventListener('click', () => {
+        popup.classList.add('show');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        popup.classList.remove('show');
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            popup.classList.remove('show');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadGame();
     handle404();
     setupInventoryPopup();
+    setupSkillsPopup();
 
     document.querySelectorAll('#choices a').forEach(link => {
         link.addEventListener('click', function(e) {
