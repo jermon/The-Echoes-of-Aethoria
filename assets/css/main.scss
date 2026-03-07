@@ -1,141 +1,206 @@
 ---
 ---
-$primary-color: #2c3e50;
-$secondary-color: #ecf0f1;
-$accent-color: #e74c3c;
+$night-sky: #120f1f;
+$stone: #2a2236;
+$parchment: #f0e6cc;
+$rune-gold: #c89b3c;
+$rune-gold-dark: #8f6e24;
+$ember: #d85c3f;
+$mana: #4eb7d6;
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: $primary-color;
-    color: $secondary-color;
+    font-family: "Trebuchet MS", "Palatino Linotype", serif;
+    background: radial-gradient(circle at top, #2e2445 0%, $night-sky 48%, #08060f 100%);
+    color: $parchment;
     line-height: 1.6;
-    padding: 20px;
+    padding: 24px;
     margin: 0;
+    min-height: 100vh;
 }
 
 #character-stats {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 5px;
+    position: sticky;
+    top: 12px;
+    z-index: 100;
+    background: linear-gradient(145deg, rgba(42, 34, 54, 0.96), rgba(20, 16, 32, 0.96));
+    border: 1px solid rgba($rune-gold, 0.35);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), inset 0 0 15px rgba($rune-gold, 0.08);
+    padding: 16px 20px;
+    margin: 0 auto 22px;
+    border-radius: 14px;
+    max-width: 980px;
 
     h2 {
-        margin-top: 0;
-        color: $accent-color;
+        margin: 0 0 12px;
+        color: $rune-gold;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 1rem;
     }
 
     #stats-container {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+        gap: 12px;
 
         .stat {
-            flex-basis: 48%;
-            margin-bottom: 10px;
+            .stat-heading {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                margin-bottom: 6px;
 
-            label {
-                font-weight: bold;
-                margin-right: 5px;
+                label {
+                    font-size: 0.84rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.06em;
+                    color: rgba($parchment, 0.92);
+                    font-weight: 700;
+                }
+            }
+
+            .stat-value {
+                color: $rune-gold;
+                font-weight: 700;
+                font-size: 0.85rem;
+            }
+
+            .stat-bar {
+                height: 10px;
+                border-radius: 999px;
+                background: rgba(0, 0, 0, 0.45);
+                border: 1px solid rgba($rune-gold, 0.22);
+                overflow: hidden;
+
+                .stat-fill {
+                    width: 0;
+                    height: 100%;
+                    border-radius: inherit;
+                    background: linear-gradient(90deg, $ember 0%, $rune-gold 55%, #ffe4a3 100%);
+                    box-shadow: 0 0 8px rgba($rune-gold, 0.55);
+                    transition: width 0.35s ease;
+                }
+
+                #intelligence,
+                #wisdom {
+                    background: linear-gradient(90deg, #3d6db5 0%, $mana 55%, #9ddff1 100%);
+                    box-shadow: 0 0 8px rgba($mana, 0.5);
+                }
             }
         }
     }
 }
 
 #game-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 5px;
+    background: linear-gradient(160deg, rgba(42, 34, 54, 0.95), rgba(22, 18, 32, 0.95));
+    border: 1px solid rgba($rune-gold, 0.32);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45);
+    padding: 26px;
+    border-radius: 16px;
 }
 
 h1 {
-    color: $accent-color;
+    color: $rune-gold;
     text-align: center;
+    margin-top: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px rgba($rune-gold, 0.4);
 }
 
 #story-text {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
 }
 
 #choices {
     a {
         display: block;
-        background-color: $accent-color;
-        color: $secondary-color;
-        padding: 10px;
+        background: linear-gradient(180deg, $rune-gold 0%, $rune-gold-dark 100%);
+        color: #1c1312;
+        padding: 11px 14px;
         margin-bottom: 10px;
         text-decoration: none;
-        border-radius: 3px;
-        transition: background-color 0.3s;
+        border-radius: 8px;
+        border: 1px solid rgba(#f5d689, 0.4);
+        font-weight: 700;
+        transition: transform 0.2s ease, filter 0.2s ease;
 
         &:hover {
-            background-color: darken($accent-color, 10%);
+            transform: translateY(-1px);
+            filter: brightness(1.08);
         }
     }
 }
 
-#inventory {
-    margin-top: 20px;
-    border-top: 1px solid $secondary-color;
-    padding-top: 20px;
-
-    h2 {
-        color: $accent-color;
-    }
-
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-}
-
 .popup {
-    display: none;
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
-    right: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    transition: transform 0.3s ease-out;
-    transform: translateY(100%);
+    bottom: 0;
+    width: min(350px, 86vw);
+    background: rgba(10, 8, 16, 0.72);
+    backdrop-filter: blur(2px);
+    transform: translateX(-105%);
+    transition: transform 0.32s ease;
+    z-index: 210;
+    display: block;
 }
 
 .popup.show {
-    display: block;
-    transform: translateY(0);
+    transform: translateX(0);
 }
 
 .popup-content {
-    background-color: $primary-color;
-    padding: 20px;
-    border-radius: 5px;
-    max-width: 600px;
-    margin: 0 auto;
+    height: 100%;
+    background: linear-gradient(180deg, #20182f 0%, #120e1d 100%);
+    border-right: 1px solid rgba($rune-gold, 0.35);
+    padding: 22px;
+
+    h2 {
+        color: $rune-gold;
+        margin-top: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
 }
 
-#open-inventory, #close-inventory {
-    background-color: $accent-color;
-    color: $secondary-color;
-    border: none;
-    padding: 10px 20px;
+#open-inventory,
+#close-inventory {
+    background: linear-gradient(180deg, $rune-gold 0%, $rune-gold-dark 100%);
+    color: #191210;
+    border: 1px solid rgba(#f5d689, 0.5);
+    padding: 10px 16px;
     cursor: pointer;
-    border-radius: 3px;
-    transition: background-color 0.3s;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: filter 0.2s ease;
 
     &:hover {
-        background-color: darken($accent-color, 10%);
+        filter: brightness(1.08);
     }
 }
 
 #open-inventory {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    top: 22px;
+    left: 24px;
+    z-index: 220;
 }
 
 #inventory-list {
     list-style-type: none;
     padding: 0;
+    margin: 14px 0 18px;
+
+    li {
+        padding: 8px 10px;
+        background: rgba($stone, 0.7);
+        border: 1px solid rgba($rune-gold, 0.18);
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
 }
