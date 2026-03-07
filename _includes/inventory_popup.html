@@ -1,7 +1,22 @@
 <div id="inventory-popup" class="popup">
     <div class="popup-content">
         <h2>Inventory</h2>
-        <ul id="inventory-list"></ul>
+        <form id="inventory-add-form">
+            <label for="inventory-item-select">Item</label>
+            <select id="inventory-item-select"></select>
+
+            <label for="inventory-compartment-select">Compartment</label>
+            <select id="inventory-compartment-select">
+                <option value="back">Back</option>
+                <option value="belt">Belt</option>
+                <option value="hands">Hands</option>
+            </select>
+
+            <button type="submit">Add Item</button>
+        </form>
+
+        <p id="inventory-message" aria-live="polite"></p>
+        <div id="inventory-list"></div>
         <button id="close-inventory">Close</button>
     </div>
 </div>
