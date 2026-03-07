@@ -32,5 +32,6 @@ In "The Echoes of Aethoria," you play as Lyra, the last surviving member of the 
 - Story passages and choices will be implemented as linked HTML pages or dynamically loaded content.
 - Combat and skill checks will use JavaScript for calculations and outcome determination.
 - Inventory and character progression will be saved using web local storage or cookies, allowing players to return to their adventure at any time.
+- Possible player skills are documented in `_data/possible_skills.yml` to make future skill-tree expansion easier.
 
 "The Echoes of Aethoria" combines the classic feel of gamebooks with modern web technologies, creating an engaging and replayable adventure that captures the spirit of "Lone Wolf" while offering a unique experience for a new generation of players.
