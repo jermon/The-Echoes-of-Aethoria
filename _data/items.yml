@@ -1,4 +1,5 @@
 - name: Bow
+  description: A finely crafted longbow for ranged combat
   weight: 3
   space: 2
   combat:
@@ -8,10 +9,12 @@
     tags: [ranged]
 
 - name: Arrows
+  description: Sharp projectiles for use with a bow
   weight: 1
   space: 1
 
 - name: Dagger
+  description: A short blade useful for close combat
   weight: 1
   space: 1
   combat:
@@ -21,10 +24,12 @@
     tags: [light]
 
 - name: Healing Herbs
+  description: A bundle of medicinal herbs that restore vitality
   weight: 1
   space: 1
 
 - name: Backpack
+  description: A sturdy pack that increases your carrying capacity
   weight: 2
   space: 2
   requiredCompartment: back
@@ -34,6 +39,7 @@
     maxSpace: 4
 
 - name: Mysterious Dagger
+  description: An enchanted blade humming with arcane power
   weight: 1
   space: 1
   combat:
