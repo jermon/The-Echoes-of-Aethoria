@@ -356,6 +356,7 @@ function addToInventory(itemName, preferredCompartment = 'back') {
     setInventoryMessage(`${itemName} added to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
     showGlideAlert(`${itemName} added to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`, 'success');
     updateInventoryDisplay();
+    updateStatsDisplay();
     saveGame();
     return true;
 }
@@ -434,6 +435,7 @@ function moveItem(itemId, targetCompartment) {
     setInventoryMessage(`${item.name} moved to ${INVENTORY_COMPARTMENTS[targetCompartment].label}.`);
     showGlideAlert(`${item.name} moved.`, 'success');
     updateInventoryDisplay();
+    updateStatsDisplay();
     saveGame();
     return true;
 }
@@ -447,6 +449,7 @@ function discardItem(itemId) {
             setInventoryMessage(`${item.name} discarded.`);
             showGlideAlert(`${item.name} discarded.`, 'info');
             updateInventoryDisplay();
+            updateStatsDisplay();
             saveGame();
             return true;
         }
@@ -615,18 +618,27 @@ function updateInventoryDisplay() {
 
 function updateStatsDisplay() {
     const maxDisplayValue = 20;
+    const passiveBonus = calculatePassiveEffects();
 
     for (const stat in gameState.stats) {
+        const baseValue = gameState.stats[stat];
+        const bonus = passiveBonus[stat] || 0;
+        const displayValue = baseValue + bonus;
+        
         const fillElement = document.getElementById(stat);
         const valueElement = document.getElementById(`${stat}-value`);
 
         if (fillElement) {
-            const percent = Math.max(0, Math.min((gameState.stats[stat] / maxDisplayValue) * 100, 100));
+            const percent = Math.max(0, Math.min((displayValue / maxDisplayValue) * 100, 100));
             fillElement.style.width = `${percent}%`;
         }
 
         if (valueElement) {
-            valueElement.textContent = gameState.stats[stat];
+            let text = displayValue.toString();
+            if (bonus > 0) {
+                text += ` (+${bonus})`;
+            }
+            valueElement.textContent = text;
         }
     }
 }
@@ -698,6 +710,32 @@ function modifyStat(stat, amount) {
         updateStatsDisplay();
         saveGame();
     }
+}
+
+function calculatePassiveEffects() {
+    const passiveBonus = {
+        strength: 0,
+        endurance: 0,
+        dexterity: 0,
+        intelligence: 0,
+        wisdom: 0,
+        armourBonus: 0
+    };
+
+    getAllInventoryItems().forEach(item => {
+        const itemData = getItemData(item.name);
+        
+        if (itemData.passiveEffect) {
+            const effect = itemData.passiveEffect;
+            if (effect.type === 'stat-boost' && effect.stat) {
+                passiveBonus[effect.stat] = (passiveBonus[effect.stat] || 0) + (effect.amount || 0);
+            } else if (effect.type === 'armour-bonus' && effect.defenceBonus) {
+                passiveBonus.armourBonus += effect.defenceBonus;
+            }
+        }
+    });
+
+    return passiveBonus;
 }
 
 function saveGame() {
@@ -990,6 +1028,7 @@ function initializeCombat(containerId, foe, options = {}) {
     const {
         successMessage = 'You are victorious.',
         successRedirect = 'forest',
+        fleeRedirect = null,
         defeatRedirect = 'start',
         heroArmourModifier = 0
     } = options;
@@ -1136,7 +1175,7 @@ function initializeCombat(containerId, foe, options = {}) {
             }
 
             appendLog('You flee from combat.');
-            endCombat('You have escaped.', successRedirect);
+            endCombat('You have escaped.', fleeRedirect || successRedirect);
         });
     }
 
