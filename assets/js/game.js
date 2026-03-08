@@ -168,7 +168,12 @@ function generateItemId() {
 }
 
 function getItemData(itemName) {
-    return ITEM_CATALOG[itemName] || { weight: 1, space: 1 };
+    const itemData = ITEM_CATALOG[itemName];
+    if (!itemData) {
+        console.warn(`Item not found in catalog: ${itemName}`);
+        return { weight: 1, space: 1 };
+    }
+    return itemData;
 }
 
 function getFoeData(foeIdOrName) {
@@ -259,7 +264,9 @@ function getTotalCarriedWeight() {
 }
 
 function getStrengthWeightLimit() {
-    return Math.max(0, gameState.stats.strength);
+    const baseStrength = gameState.stats.strength;
+    const passiveBonus = calculatePassiveEffects().strength || 0;
+    return Math.max(0, baseStrength + passiveBonus);
 }
 
 function hasItemByName(itemName) {
@@ -292,6 +299,15 @@ function getCompartmentUsage(compartment) {
 }
 
 function canAddItemToCompartment(itemData, compartment) {
+    if (!itemData || typeof itemData.weight !== 'number' || typeof itemData.space !== 'number') {
+        console.error('Invalid item data passed to canAddItemToCompartment:', itemData);
+        return {
+            fitsWeight: false,
+            fitsSpace: false,
+            fitsStrength: false
+        };
+    }
+
     const capacity = getCompartmentCapacity(compartment);
     const usage = getCompartmentUsage(compartment);
     const weightLimit = getStrengthWeightLimit();
