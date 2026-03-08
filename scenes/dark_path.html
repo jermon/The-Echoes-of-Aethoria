@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCombat('combat-panel', foe, {
         successMessage: `The ${foe.name} collapses unconscious. You are victorious.`,
         successRedirect: 'defeat_troll',
+        fleeRedirect: 'troll_escaped',
         defeatRedirect: 'death'
     });
 });
