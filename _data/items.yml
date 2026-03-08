@@ -58,12 +58,15 @@
   weight: 3
   space: 2
   requiredCompartment: armour
+  combat:
+    skill: Natural Armour
+    defenceModifier: 2
+    tags: [armour]
 
 - name: Troll Tooth Talisman
-  description: A carved tusk pendant that grants a boost to strength
+  description: A carved tusk pendant that grants a boost to strength when worn.
   weight: 1
   space: 1
-  consumable: true
   effect:
     type: boost-stat
     stat: strength
