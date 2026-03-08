@@ -71,3 +71,13 @@
     type: boost-stat
     stat: strength
     amount: 3
+
+- name: Dagger of dexterity
+  description: A finely balanced dagger that enhances the wielder's agility
+  weight: 1
+  space: 1
+  combat:
+    skill: Swordplay
+    attackModifier: 2
+    damage: [1, 6]
+    tags: [light]

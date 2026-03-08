@@ -833,6 +833,22 @@ function setupItemDetailsPopup() {
         });
     }
 }
+
+function applyPageStatBonuses() {
+    if (!window.PAGE_STAT_BONUSES || typeof window.PAGE_STAT_BONUSES !== 'object') {
+        return;
+    }
+
+    for (const stat in window.PAGE_STAT_BONUSES) {
+        const bonus = window.PAGE_STAT_BONUSES[stat];
+        if (bonus && typeof bonus === 'number') {
+            modifyStat(stat, bonus);
+        }
+    }
+
+    updateStatsDisplay();
+    saveGame();
+}
 function setupSkillsPopup() {
     const popup = document.getElementById('skills-popup');
 
@@ -857,6 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupItemDetailsPopup();
     setupSkillsPopup();
     initializeAvailableItems();
+    applyPageStatBonuses();
 
     document.querySelectorAll('#choices a').forEach(link => {
         link.addEventListener('click', function(e) {

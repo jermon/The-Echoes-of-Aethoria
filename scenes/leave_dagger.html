@@ -1,6 +1,8 @@
 ---
 layout: game
 title: The Road Not Taken
+stat_bonuses:
+  wisdom: 1
 choices:
   - text: Continue your journey
     next_scene: forest
@@ -12,9 +14,3 @@ As you step back from the dagger, you could swear you hear a faint whisper on th
 
 You take one last look at the gleaming dagger before turning away. The weight of your decision sits heavily on your mind as you continue your journey through the Whispering Forest.
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    modifyStat('wisdom', 1);
-    showGlideAlert('Your wisdom has increased by 1!', 'success');
-});
-</script>
