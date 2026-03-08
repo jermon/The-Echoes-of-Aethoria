@@ -62,13 +62,16 @@
     skill: Natural Armour
     defenceModifier: 2
     tags: [armour]
+  passiveEffect:
+    type: armour-bonus
+    defenceBonus: 2
 
 - name: Troll Tooth Talisman
   description: A carved tusk pendant that grants a boost to strength when worn.
   weight: 1
   space: 1
-  effect:
-    type: boost-stat
+  passiveEffect:
+    type: stat-boost
     stat: strength
     amount: 3
 
@@ -81,3 +84,7 @@
     attackModifier: 2
     damage: [1, 6]
     tags: [light]
+  passiveEffect:
+    type: stat-boost
+    stat: dexterity
+    amount: 1
