@@ -57,6 +57,11 @@ const ITEM_CATALOG = DATA_ITEMS.length
 
 const DATA_FOES = Array.isArray(window.GAME_DATA?.foes) ? window.GAME_DATA.foes : [];
 
+const DATA_COMBAT_TABLES = window.GAME_DATA?.combat_tables || {
+    criticals: { slash: [], puncture: [], crush: [] },
+    fumbles: []
+};
+
 const SKILL_TREE = [
     {
         name: 'Combat',
@@ -225,6 +230,21 @@ function getCombatWeaponsFromInventory() {
         .filter(Boolean);
 }
 
+function getDamageType(tags = [], name = '') {
+    const lowerName = name.toLowerCase();
+    if (tags.includes('ranged') || tags.includes('piercing') || lowerName.includes('bow') || lowerName.includes('arrow')) return 'puncture';
+    if (tags.includes('blunt') || lowerName.includes('hammer') || lowerName.includes('mace') || lowerName.includes('fist')) return 'crush';
+    // Default to slash for edged weapons or generic
+    return 'slash';
+}
+
+function lookupCombatTable(table, roll) {
+    if (!Array.isArray(table) || table.length === 0) return null;
+    // Find the first entry where roll <= max
+    const entry = table.find(e => roll <= e.max);
+    return entry || table[table.length - 1];
+}
+
 function resolveAttackRound({
     attackerSkill = 0,
     attackerRandom = rollDie(10),
@@ -232,18 +252,60 @@ function resolveAttackRound({
     defenderDexterity = 0,
     defenderRandom = rollDie(10),
     defenderArmourModifier = 0,
-    damageRange = [1, 4]
+    damageRange = [1, 4],
+    weaponTags = [],
+    weaponName = ''
 }) {
+    const isCritical = attackerRandom === 10;
+    const isFumble = attackerRandom === 1;
+
     const attackRoll = attackerSkill + attackerRandom + weaponAttackModifier;
     const defenceRoll = defenderDexterity + defenderRandom + defenderArmourModifier;
-    const hit = attackRoll > defenceRoll;
-    const damage = hit ? rollRange(damageRange[0], damageRange[1]) : 0;
+    
+    let hit = attackRoll > defenceRoll;
+    let damage = 0;
+    let critResult = null;
+    let fumbleResult = null;
+    let critRoll = 0;
+    let fumbleRoll = 0;
+
+    if (isCritical) hit = true;
+    if (isFumble) hit = false;
+
+    if (hit) {
+        const baseDamage = rollRange(damageRange[0], damageRange[1]);
+        
+        if (isCritical) {
+            critRoll = rollRange(1, 100);
+            const type = getDamageType(weaponTags, weaponName);
+            const table = DATA_COMBAT_TABLES.criticals[type] || DATA_COMBAT_TABLES.criticals.slash;
+            critResult = lookupCombatTable(table, critRoll);
+            
+            if (critResult) {
+                damage = Math.floor(baseDamage * (critResult.multiplier || 1));
+            } else {
+                damage = baseDamage * 2; // Fallback
+            }
+        } else {
+            damage = baseDamage;
+        }
+    } else if (isFumble) {
+        fumbleRoll = rollRange(1, 100);
+        const table = DATA_COMBAT_TABLES.fumbles;
+        fumbleResult = lookupCombatTable(table, fumbleRoll);
+    }
 
     return {
         attackRoll,
         defenceRoll,
         hit,
         damage,
+        isCritical,
+        isFumble,
+        critResult,
+        fumbleResult,
+        critRoll,
+        fumbleRoll,
         details: {
             attackerSkill,
             attackerRandom,
@@ -1061,7 +1123,8 @@ function initializeCombat(containerId, foe, options = {}) {
     function appendLog(message) {
         const entry = document.createElement('p');
         entry.textContent = message;
-        combatLog.prepend(entry);
+        combatLog.appendChild(entry);
+        combatLog.scrollTop = combatLog.scrollHeight;
     }
 
     function renderWeapons() {
@@ -1140,15 +1203,29 @@ function initializeCombat(containerId, foe, options = {}) {
                 weaponAttackModifier: weapon.combat.attackModifier,
                 defenderDexterity: foe.dexterity,
                 defenderArmourModifier: foe.armourModifier,
-                damageRange: weapon.combat.damage
+                damageRange: weapon.combat.damage,
+                weaponTags: weapon.combat.tags,
+                weaponName: weapon.name
             });
 
-            appendLog(`You attack with ${weapon.name}: ${heroAttack.attackRoll} vs ${foe.name} defence ${heroAttack.defenceRoll}.`);
-
-            if (heroAttack.hit) {
+            if (heroAttack.isFumble) {
+                const fumbleText = heroAttack.fumbleResult ? heroAttack.fumbleResult.text : "You stumble!";
+                appendLog(`FUMBLE! (Roll ${heroAttack.fumbleRoll}) ${fumbleText}`);
+                if (heroAttack.fumbleResult && heroAttack.fumbleResult.damage_self > 0) {
+                    modifyStat('endurance', -heroAttack.fumbleResult.damage_self);
+                    appendLog(`You take ${heroAttack.fumbleResult.damage_self} damage from your clumsiness.`);
+                }
+            } else if (heroAttack.isCritical) {
+                const critText = heroAttack.critResult ? heroAttack.critResult.text : "A devastating blow!";
+                appendLog(`CRITICAL HIT! (Roll ${heroAttack.critRoll}) ${critText}`);
+                foe.endurance = Math.max(0, foe.endurance - heroAttack.damage);
+                appendLog(`You deal ${heroAttack.damage} damage to ${foe.name}.`);
+            } else if (heroAttack.hit) {
+                appendLog(`You attack with ${weapon.name}: ${heroAttack.attackRoll} vs Defence ${heroAttack.defenceRoll}.`);
                 foe.endurance = Math.max(0, foe.endurance - heroAttack.damage);
                 appendLog(`Hit! ${weapon.name} deals ${heroAttack.damage} damage.`);
             } else {
+                appendLog(`You attack with ${weapon.name}: ${heroAttack.attackRoll} vs Defence ${heroAttack.defenceRoll}.`);
                 appendLog('Miss. Your strike is evaded.');
             }
 
@@ -1164,15 +1241,28 @@ function initializeCombat(containerId, foe, options = {}) {
                 weaponAttackModifier: foe.weaponAttackModifier,
                 defenderDexterity: gameState.stats.dexterity,
                 defenderArmourModifier: heroArmourModifier,
-                damageRange: foe.damage
+                damageRange: foe.damage,
+                weaponName: foe.name // Use foe name to guess damage type (e.g. "Wolf" -> crush/slash)
             });
 
-            appendLog(`${foe.name} attacks: ${foeAttack.attackRoll} vs your defence ${foeAttack.defenceRoll}.`);
-
-            if (foeAttack.hit) {
+            if (foeAttack.isFumble) {
+                const fumbleText = foeAttack.fumbleResult ? foeAttack.fumbleResult.text : "stumbles!";
+                appendLog(`${foe.name} FUMBLES! (Roll ${foeAttack.fumbleRoll}) ${fumbleText}`);
+                if (foeAttack.fumbleResult && foeAttack.fumbleResult.damage_self > 0) {
+                    foe.endurance = Math.max(0, foe.endurance - foeAttack.fumbleResult.damage_self);
+                    appendLog(`${foe.name} hurts themselves for ${foeAttack.fumbleResult.damage_self} damage.`);
+                }
+            } else if (foeAttack.isCritical) {
+                const critText = foeAttack.critResult ? foeAttack.critResult.text : "A devastating blow!";
+                appendLog(`${foe.name} lands a CRITICAL HIT! (Roll ${foeAttack.critRoll}) ${critText}`);
+                modifyStat('endurance', -foeAttack.damage);
+                appendLog(`You take ${foeAttack.damage} damage!`);
+            } else if (foeAttack.hit) {
+                appendLog(`${foe.name} attacks: ${foeAttack.attackRoll} vs your Defence ${foeAttack.defenceRoll}.`);
                 modifyStat('endurance', -foeAttack.damage);
                 appendLog(`${foe.name} hits you for ${foeAttack.damage} damage.`);
             } else {
+                appendLog(`${foe.name} attacks: ${foeAttack.attackRoll} vs your Defence ${foeAttack.defenceRoll}.`);
                 appendLog('You evade the attack.');
             }
 

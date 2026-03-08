@@ -1,0 +1,66 @@
+criticals:
+  slash:
+    - max: 20
+      text: "A glancing blow. Minor cut."
+      multiplier: 1.0
+    - max: 50
+      text: "A solid strike. The blade bites deep."
+      multiplier: 1.5
+    - max: 70
+      text: "Deep gash! Muscle severed."
+      multiplier: 2.0
+    - max: 90
+      text: "Crushing slash to the chest! Ribs parted."
+      multiplier: 3.0
+    - max: 100
+      text: "Decapitation! The head rolls free."
+      multiplier: 100.0
+  puncture:
+    - max: 20
+      text: "Grazing shot."
+      multiplier: 1.0
+    - max: 50
+      text: "Arrow sinks into flesh."
+      multiplier: 1.5
+    - max: 70
+      text: "Pierced lung! Bloody froth."
+      multiplier: 2.0
+    - max: 90
+      text: "Through the throat!"
+      multiplier: 3.0
+    - max: 100
+      text: "Through the eye! Instant death."
+      multiplier: 100.0
+  crush:
+    - max: 20
+      text: "Bruising impact."
+      multiplier: 1.0
+    - max: 50
+      text: "Bone cracks under the force."
+      multiplier: 1.5
+    - max: 70
+      text: "Shattered ribs! Internal bleeding."
+      multiplier: 2.0
+    - max: 90
+      text: "Skull fracture! Concussion."
+      multiplier: 3.0
+    - max: 100
+      text: "Spine pulverized! Instant collapse."
+      multiplier: 100.0
+
+fumbles:
+  - max: 25
+    text: "You hesitate, losing your advantage."
+    damage_self: 0
+  - max: 50
+    text: "You stumble and lose your balance."
+    damage_self: 0
+  - max: 75
+    text: "Your weapon slips, ruining the attack."
+    damage_self: 0
+  - max: 90
+    text: "You strike yourself in the leg!"
+    damage_self: 2
+  - max: 100
+    text: "Disastrous fumble! You injure yourself severely."
+    damage_self: 5
