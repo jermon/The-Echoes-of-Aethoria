@@ -455,6 +455,65 @@ function discardItem(itemId) {
     return false;
 }
 
+function applyItemEffect(item) {
+    if (!item.effect) {
+        console.warn(`Item ${item.name} has no effect defined`);
+        return false;
+    }
+
+    const effect = item.effect;
+
+    if (effect.type === 'heal-stat') {
+        const stat = effect.stat;
+        const defaultStat = DEFAULT_STATS[stat];
+        
+        if (effect.amount === 'all') {
+            gameState.stats[stat] = defaultStat;
+            showGlideAlert(`${item.name} healed your ${stat} back to ${defaultStat}!`, 'success');
+        } else {
+            gameState.stats[stat] = Math.min(gameState.stats[stat] + effect.amount, defaultStat);
+            showGlideAlert(`${item.name} healed your ${stat} by ${effect.amount}!`, 'success');
+        }
+        return true;
+    } else if (effect.type === 'boost-stat') {
+        const stat = effect.stat;
+        gameState.stats[stat] += effect.amount;
+        showGlideAlert(`${item.name} increased your ${stat} by ${effect.amount}!`, 'success');
+        return true;
+    }
+
+    return false;
+}
+
+function useItem(itemId) {
+    for (const compartment of Object.keys(gameState.inventory)) {
+        const index = gameState.inventory[compartment].findIndex(item => item.id === itemId);
+
+        if (index !== -1) {
+            const item = gameState.inventory[compartment][index];
+            const itemData = getItemData(item.name);
+
+            if (!itemData.consumable) {
+                showGlideAlert(`${item.name} cannot be used.`, 'warning');
+                return false;
+            }
+
+            if (applyItemEffect({ ...item, ...itemData })) {
+                gameState.inventory[compartment].splice(index, 1);
+                setInventoryMessage(`${item.name} used and consumed.`);
+                updateInventoryDisplay();
+                updateStatsDisplay();
+                saveGame();
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    return false;
+}
+
 function updateInventoryDisplay() {
     const inventoryList = document.getElementById('inventory-list');
 
@@ -497,14 +556,28 @@ function updateInventoryDisplay() {
                 const listItem = document.createElement('li');
                 listItem.draggable = true;
                 listItem.dataset.itemId = item.id;
-                let label = `${item.name} (W:${item.weight}, S:${item.space})`;
-
-                if (item.upgrade) {
-                    label += ' • expands carrying capacity';
-                }
-
+                
                 const labelSpan = document.createElement('span');
-                labelSpan.textContent = label;
+                labelSpan.textContent = item.name;
+                labelSpan.style.cursor = 'pointer';
+                labelSpan.addEventListener('click', () => {
+                    showItemDetails(item.name);
+                });
+
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'inventory-item-buttons';
+
+                const itemData = getItemData(item.name);
+                if (itemData.consumable) {
+                    const useButton = document.createElement('button');
+                    useButton.type = 'button';
+                    useButton.className = 'inventory-use-btn';
+                    useButton.textContent = 'Use';
+                    useButton.addEventListener('click', () => {
+                        useItem(item.id);
+                    });
+                    buttonContainer.appendChild(useButton);
+                }
 
                 const discardButton = document.createElement('button');
                 discardButton.type = 'button';
@@ -519,7 +592,8 @@ function updateInventoryDisplay() {
                 });
 
                 listItem.appendChild(labelSpan);
-                listItem.appendChild(discardButton);
+                buttonContainer.appendChild(discardButton);
+                listItem.appendChild(buttonContainer);
                 list.appendChild(listItem);
             });
         }
@@ -701,6 +775,7 @@ function handle404() {
 function setupEdgePopups() {
     const inventoryPopup = document.getElementById('inventory-popup');
     const skillsPopup = document.getElementById('skills-popup');
+    const itemDetailsPopup = document.getElementById('item-details-popup');
 
     if (!inventoryPopup || !skillsPopup) {
         return;
@@ -722,12 +797,30 @@ function setupEdgePopups() {
         if (event.key === 'Escape') {
             inventoryPopup.classList.remove('show');
             skillsPopup.classList.remove('show');
+            if (itemDetailsPopup) {
+                itemDetailsPopup.classList.remove('show');
+            }
         }
     });
 }
 
 function setupInventoryPopup() {
     const popup = document.getElementById('inventory-popup');
+
+    if (!popup) {
+        return;
+    }
+
+    const closeButton = popup.querySelector('.popup-close-btn');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            popup.classList.remove('show');
+        });
+    }
+}
+
+function setupItemDetailsPopup() {
+    const popup = document.getElementById('item-details-popup');
 
     if (!popup) {
         return;
@@ -761,7 +854,9 @@ document.addEventListener('DOMContentLoaded', function() {
     handle404();
     setupEdgePopups();
     setupInventoryPopup();
+    setupItemDetailsPopup();
     setupSkillsPopup();
+    initializeAvailableItems();
 
     document.querySelectorAll('#choices a').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -773,6 +868,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function displayAvailableItems(items, containerId = 'available-items-bar') {
+    // Legacy function - kept for backward compatibility
+    // Items should now be rendered in Jekyll templates using _includes/available_items.html
     const container = document.getElementById(containerId);
     if (!container) {
         console.warn(`Container with id '${containerId}' not found`);
@@ -787,14 +884,72 @@ function displayAvailableItems(items, containerId = 'available-items-bar') {
         const itemDiv = document.createElement('div');
         itemDiv.draggable = true;
         itemDiv.className = 'available-item-chip';
+        itemDiv.dataset.itemName = itemName;
         itemDiv.textContent = itemName;
-        
-        itemDiv.addEventListener('dragstart', function(e) {
+        container.appendChild(itemDiv);
+    });
+
+    // Initialize drag listeners for dynamically created items
+    initializeAvailableItems();
+}
+
+function initializeAvailableItems() {
+    // Set up delegated drag event listener
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('available-item-chip')) {
+            const itemName = e.target.dataset.itemName;
             e.dataTransfer.effectAllowed = 'copy';
             e.dataTransfer.setData('application/x-available-item', itemName);
-        });
+        }
+    });
+
+    // Make all items draggable
+    document.querySelectorAll('.available-item-chip').forEach(chip => {
+        chip.draggable = true;
+    });
+}
+
+function renderCombatStats(statsContainerId, stats, type = 'foe') {
+    const container = document.getElementById(statsContainerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const statKeys = type === 'hero' 
+        ? ['strength', 'endurance', 'dexterity', 'intelligence', 'wisdom']
+        : ['strength', 'endurance', 'dexterity', 'armourModifier', 'attackSkill'];
+    
+    const maxValues = {
+        strength: 20,
+        endurance: 100,
+        dexterity: 20,
+        intelligence: 20,
+        wisdom: 20,
+        armourModifier: 10,
+        attackSkill: 10
+    };
+
+    statKeys.forEach(stat => {
+        const value = stats[stat] || 0;
+        const maxValue = maxValues[stat] || 20;
+        const percentage = Math.min(100, (value / maxValue) * 100);
         
-        container.appendChild(itemDiv);
+        const statDiv = document.createElement('div');
+        statDiv.className = 'combat-stat';
+        
+        const label = stat.replace(/([A-Z])/g, ' $1').trim();
+        
+        statDiv.innerHTML = `
+            <div class="stat-heading">
+                <label>${label}</label>
+                <span class="stat-value">${value}</span>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-fill" style="width: ${percentage}%"></div>
+            </div>
+        `;
+        
+        container.appendChild(statDiv);
     });
 }
 
@@ -808,7 +963,250 @@ function addItemsOnLoad(items) {
     });
 }
 
+function initializeCombat(containerId, foe, options = {}) {
+    const container = document.getElementById(containerId);
+    if (!container || !foe) {
+        console.error(`Combat initialization failed: container or foe missing`);
+        return;
+    }
+
+    const {
+        successMessage = 'You are victorious.',
+        successRedirect = 'forest',
+        defeatRedirect = 'start',
+        heroArmourModifier = 0
+    } = options;
+
+    const weaponChoice = container.querySelector('#weapon-choice');
+    const attackButton = container.querySelector('#attack-button');
+    const fleeButton = container.querySelector('#flee-button');
+    const foeName = container.querySelector('#foe-name');
+    const combatStatus = container.querySelector('#combat-status');
+    const combatLog = container.querySelector('#combat-log');
+
+    let combatEnded = false;
+
+    function appendLog(message) {
+        const entry = document.createElement('p');
+        entry.textContent = message;
+        combatLog.prepend(entry);
+    }
+
+    function renderWeapons() {
+        const weapons = getCombatWeaponsFromInventory();
+        weaponChoice.innerHTML = '';
+
+        if (weapons.length === 0) {
+            const fists = document.createElement('option');
+            fists.value = '__fists__';
+            fists.textContent = 'Bare Hands (Untrained)';
+            weaponChoice.appendChild(fists);
+            return;
+        }
+
+        weapons.forEach(weapon => {
+            const option = document.createElement('option');
+            option.value = weapon.id;
+            option.textContent = `${weapon.name} (Skill ${weapon.skillLevel}, +${weapon.combat.attackModifier} hit)`;
+            weaponChoice.appendChild(option);
+        });
+    }
+
+    function getSelectedWeapon() {
+        const chosen = weaponChoice.value;
+        const weapons = getCombatWeaponsFromInventory();
+        const selected = weapons.find(weapon => weapon.id === chosen);
+
+        if (selected) {
+            return selected;
+        }
+
+        return {
+            id: '__fists__',
+            name: 'Bare Hands',
+            skillLevel: 0,
+            combat: {
+                skill: null,
+                attackModifier: 0,
+                damage: [1, 3]
+            }
+        };
+    }
+
+    function updateDisplay() {
+        if (foeName) {
+            foeName.textContent = foe.name;
+        }
+
+        renderCombatStats('foe-stats', foe, 'foe');
+        renderCombatStats('hero-stats', gameState.stats, 'hero');
+    }
+
+    function endCombat(message, redirectTo) {
+        combatEnded = true;
+        if (attackButton) attackButton.disabled = true;
+        if (fleeButton) fleeButton.disabled = true;
+        if (combatStatus) combatStatus.textContent = message;
+
+        if (redirectTo) {
+            setTimeout(() => {
+                window.location.href = `${redirectTo}.html`;
+            }, 1800);
+        }
+    }
+
+    if (attackButton) {
+        attackButton.addEventListener('click', function() {
+            if (combatEnded) {
+                return;
+            }
+
+            const weapon = getSelectedWeapon();
+
+            const heroAttack = resolveAttackRound({
+                attackerSkill: weapon.skillLevel,
+                weaponAttackModifier: weapon.combat.attackModifier,
+                defenderDexterity: foe.dexterity,
+                defenderArmourModifier: foe.armourModifier,
+                damageRange: weapon.combat.damage
+            });
+
+            appendLog(`You attack with ${weapon.name}: ${heroAttack.attackRoll} vs ${foe.name} defence ${heroAttack.defenceRoll}.`);
+
+            if (heroAttack.hit) {
+                foe.endurance = Math.max(0, foe.endurance - heroAttack.damage);
+                appendLog(`Hit! ${weapon.name} deals ${heroAttack.damage} damage.`);
+            } else {
+                appendLog('Miss. Your strike is evaded.');
+            }
+
+            updateDisplay();
+
+            if (foe.endurance <= 0) {
+                endCombat(successMessage, successRedirect);
+                return;
+            }
+
+            const foeAttack = resolveAttackRound({
+                attackerSkill: foe.attackSkill,
+                weaponAttackModifier: foe.weaponAttackModifier,
+                defenderDexterity: gameState.stats.dexterity,
+                defenderArmourModifier: heroArmourModifier,
+                damageRange: foe.damage
+            });
+
+            appendLog(`${foe.name} attacks: ${foeAttack.attackRoll} vs your defence ${foeAttack.defenceRoll}.`);
+
+            if (foeAttack.hit) {
+                modifyStat('endurance', -foeAttack.damage);
+                appendLog(`${foe.name} hits you for ${foeAttack.damage} damage.`);
+            } else {
+                appendLog('You evade the attack.');
+            }
+
+            updateDisplay();
+
+            if (gameState.stats.endurance <= 0) {
+                endCombat('You are reduced to 0 endurance, fall unconscious, and are defeated.', defeatRedirect);
+            }
+        });
+    }
+
+    if (fleeButton) {
+        fleeButton.addEventListener('click', function() {
+            if (combatEnded) {
+                return;
+            }
+
+            appendLog('You flee from combat.');
+            endCombat('You have escaped.', successRedirect);
+        });
+    }
+
+    // Defer initialization to ensure game.js loadGame() completes first
+    setTimeout(function() {
+        renderWeapons();
+        updateDisplay();
+        appendLog('Combat begins. Choose a weapon and fight round by round or flee.');
+    }, 0);
+}
+
+function showItemDetails(itemName) {
+    const itemData = getItemData(itemName);
+    if (!itemData) return;
+
+    const popup = document.getElementById('item-details-popup');
+    const nameElement = document.getElementById('item-details-name');
+    const contentElement = document.getElementById('item-details-content');
+
+    nameElement.textContent = itemName;
+    contentElement.innerHTML = '';
+
+    // Description
+    if (itemData.description) {
+        const descDiv = document.createElement('p');
+        descDiv.className = 'item-details-description';
+        descDiv.textContent = itemData.description;
+        contentElement.appendChild(descDiv);
+    }
+
+    // Weight and space
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'item-stats';
+    statsDiv.innerHTML = `
+        <p><strong>Weight:</strong> ${itemData.weight}</p>
+        <p><strong>Space:</strong> ${itemData.space}</p>
+    `;
+    contentElement.appendChild(statsDiv);
+
+    // Combat stats if available
+    if (itemData.combat) {
+        const combatDiv = document.createElement('div');
+        combatDiv.className = 'item-combat-stats';
+        let combatHTML = '<strong>Combat Stats:</strong><ul>';
+        combatHTML += `<li>Skill: ${itemData.combat.skill}</li>`;
+        combatHTML += `<li>Attack Modifier: +${itemData.combat.attackModifier}</li>`;
+        combatHTML += `<li>Damage: ${itemData.combat.damage[0]}d${itemData.combat.damage[1]}</li>`;
+        if (itemData.combat.tags && itemData.combat.tags.length > 0) {
+            combatHTML += `<li>Tags: ${itemData.combat.tags.join(', ')}</li>`;
+        }
+        combatHTML += '</ul>';
+        combatDiv.innerHTML = combatHTML;
+        contentElement.appendChild(combatDiv);
+    }
+
+    // Consumable effect if available
+    if (itemData.consumable && itemData.effect) {
+        const effectDiv = document.createElement('div');
+        effectDiv.className = 'item-effect';
+        let effectHTML = '<strong>Effect when used:</strong><ul>';
+        const effect = itemData.effect;
+        if (effect.type === 'heal-stat') {
+            effectHTML += `<li>Restores ${effect.stat} to full</li>`;
+        } else if (effect.type === 'boost-stat') {
+            effectHTML += `<li>Boosts ${effect.stat} by ${effect.amount}</li>`;
+        }
+        effectHTML += '</ul>';
+        effectDiv.innerHTML = effectHTML;
+        contentElement.appendChild(effectDiv);
+    }
+
+    // Show popup
+    if (popup) {
+        popup.classList.add('show');
+    }
+}
+
+function closeItemDetails() {
+    const popup = document.getElementById('item-details-popup');
+    if (popup) {
+        popup.classList.remove('show');
+    }
+}
+
 window.showGlideAlert = showGlideAlert;
 window.getFoeData = getFoeData;
 window.displayAvailableItems = displayAvailableItems;
 window.addItemsOnLoad = addItemsOnLoad;
+window.initializeCombat = initializeCombat;
+window.initializeAvailableItems = initializeAvailableItems;

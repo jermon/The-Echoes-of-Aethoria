@@ -1,0 +1,7 @@
+{% if page.available_items %}
+<div id="available-items-bar">
+    {% for item_name in page.available_items %}
+    <div class="available-item-chip" data-item-name="{{ item_name }}">{{ item_name }}</div>
+    {% endfor %}
+</div>
+{% endif %}

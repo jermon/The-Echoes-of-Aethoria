@@ -1,7 +1,7 @@
 ---
 layout: game
 title: A New Ally
-items_to_add:
+available_items:
   - Dagger of dexterity
 stat_bonuses:
   dexterity: 1
@@ -16,15 +16,3 @@ As you examine the dagger more closely, you notice that its balance is perfect, 
 
 You carefully secure the dagger to your belt, feeling a little more prepared for the challenges that lie ahead.
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    addItemsOnLoad({{ page.items_to_add | jsonify }});
-    const statBonuses = {{ page.stat_bonuses | jsonify }};
-    if (statBonuses) {
-        for (const [stat, bonus] of Object.entries(statBonuses)) {
-            modifyStat(stat, bonus);
-            showGlideAlert(`Your ${stat} has increased by ${bonus}!`, 'success');
-        }
-    }
-});
-</script>

@@ -4,8 +4,18 @@
             <h2>Inventory</h2>
             <button type="button" class="popup-close-btn" aria-label="Close inventory">×</button>
         </div>
-        <p class="inventory-drag-helper">Drag an available item into a compartment to equip it.</p>
+        <p class="inventory-drag-helper">Drag an item into a compartment to equip it. Click an item to view details.</p>
         <p id="inventory-message" aria-live="polite"></p>
         <div id="inventory-list"></div>
+    </div>
+</div>
+
+<div id="item-details-popup" class="popup">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h2 id="item-details-name"></h2>
+            <button type="button" class="popup-close-btn" aria-label="Close item details">×</button>
+        </div>
+        <div id="item-details-content"></div>
     </div>
 </div>

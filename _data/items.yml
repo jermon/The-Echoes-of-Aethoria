@@ -27,6 +27,11 @@
   description: A bundle of medicinal herbs that restore vitality
   weight: 1
   space: 1
+  consumable: true
+  effect:
+    type: heal-stat
+    stat: endurance
+    amount: all
 
 - name: Backpack
   description: A sturdy pack that increases your carrying capacity
@@ -47,3 +52,19 @@
     attackModifier: 3
     damage: [2, 6]
     tags: [light, mystical]
+
+- name: Troll Hide Cloak
+  description: A heavy cloak woven from trollish hide, providing natural armour
+  weight: 3
+  space: 2
+  requiredCompartment: armour
+
+- name: Troll Tooth Talisman
+  description: A carved tusk pendant that grants a boost to strength
+  weight: 1
+  space: 1
+  consumable: true
+  effect:
+    type: boost-stat
+    stat: strength
+    amount: 3

@@ -1,0 +1,20 @@
+---
+layout: game
+title: You Have Fallen
+choices:
+  - text: Restart your journey
+    next_scene: start
+---
+
+<h2>Defeat</h2>
+<p>Your vision blurs as consciousness slips away. The last thing you remember is the overwhelming force of your foe's final blow, and then... nothing but darkness.</p>
+
+<p>You have been defeated in combat. Your journey through the Echoes of Aethoria has come to an end, but perhaps another attempt awaits you.</p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Reset the game state on death
+    localStorage.removeItem('gameState');
+    showGlideAlert('Your adventure has come to an end. A new journey begins...', 'warning');
+});
+</script>
