@@ -697,10 +697,6 @@ function updateInventoryDisplay() {
                 
                 const labelSpan = document.createElement('span');
                 labelSpan.textContent = item.name;
-                labelSpan.style.cursor = 'pointer';
-                labelSpan.addEventListener('click', () => {
-                    showItemDetails(item.name);
-                });
 
                 const buttonContainer = document.createElement('div');
                 buttonContainer.className = 'inventory-item-buttons';
@@ -948,7 +944,6 @@ function handle404() {
 function setupEdgePopups() {
     const inventoryPopup = document.getElementById('inventory-popup');
     const skillsPopup = document.getElementById('skills-popup');
-    const itemDetailsPopup = document.getElementById('item-details-popup');
 
     if (!inventoryPopup || !skillsPopup) {
         return;
@@ -970,30 +965,12 @@ function setupEdgePopups() {
         if (event.key === 'Escape') {
             inventoryPopup.classList.remove('show');
             skillsPopup.classList.remove('show');
-            if (itemDetailsPopup) {
-                itemDetailsPopup.classList.remove('show');
-            }
         }
     });
 }
 
 function setupInventoryPopup() {
     const popup = document.getElementById('inventory-popup');
-
-    if (!popup) {
-        return;
-    }
-
-    const closeButton = popup.querySelector('.popup-close-btn');
-    if (closeButton) {
-        closeButton.addEventListener('click', function() {
-            popup.classList.remove('show');
-        });
-    }
-}
-
-function setupItemDetailsPopup() {
-    const popup = document.getElementById('item-details-popup');
 
     if (!popup) {
         return;
@@ -1056,7 +1033,6 @@ document.addEventListener('DOMContentLoaded', function() {
     handle404();
     setupEdgePopups();
     setupInventoryPopup();
-    setupItemDetailsPopup();
     setupSkillsPopup();
     initializeAvailableItems();
     openInventoryByDefaultWhenItemsPresent();
@@ -1362,79 +1338,6 @@ function initializeCombat(containerId, foe, options = {}) {
         updateDisplay();
         appendLog('Combat begins. Choose a weapon and fight round by round or flee.');
     }, 0);
-}
-
-function showItemDetails(itemName) {
-    const itemData = getItemData(itemName);
-    if (!itemData) return;
-
-    const popup = document.getElementById('item-details-popup');
-    const nameElement = document.getElementById('item-details-name');
-    const contentElement = document.getElementById('item-details-content');
-
-    nameElement.textContent = itemName;
-    contentElement.innerHTML = '';
-
-    // Description
-    if (itemData.description) {
-        const descDiv = document.createElement('p');
-        descDiv.className = 'item-details-description';
-        descDiv.textContent = itemData.description;
-        contentElement.appendChild(descDiv);
-    }
-
-    // Weight and space
-    const statsDiv = document.createElement('div');
-    statsDiv.className = 'item-stats';
-    statsDiv.innerHTML = `
-        <p><strong>Weight:</strong> ${itemData.weight}</p>
-        <p><strong>Space:</strong> ${itemData.space}</p>
-    `;
-    contentElement.appendChild(statsDiv);
-
-    // Combat stats if available
-    if (itemData.combat) {
-        const combatDiv = document.createElement('div');
-        combatDiv.className = 'item-combat-stats';
-        let combatHTML = '<strong>Combat Stats:</strong><ul>';
-        combatHTML += `<li>Skill: ${itemData.combat.skill}</li>`;
-        combatHTML += `<li>Attack Modifier: +${itemData.combat.attackModifier}</li>`;
-        combatHTML += `<li>Damage: ${itemData.combat.damage[0]}d${itemData.combat.damage[1]}</li>`;
-        if (itemData.combat.tags && itemData.combat.tags.length > 0) {
-            combatHTML += `<li>Tags: ${itemData.combat.tags.join(', ')}</li>`;
-        }
-        combatHTML += '</ul>';
-        combatDiv.innerHTML = combatHTML;
-        contentElement.appendChild(combatDiv);
-    }
-
-    // Consumable effect if available
-    if (itemData.consumable && itemData.effect) {
-        const effectDiv = document.createElement('div');
-        effectDiv.className = 'item-effect';
-        let effectHTML = '<strong>Effect when used:</strong><ul>';
-        const effect = itemData.effect;
-        if (effect.type === 'heal-stat') {
-            effectHTML += `<li>Restores ${effect.stat} to full</li>`;
-        } else if (effect.type === 'boost-stat') {
-            effectHTML += `<li>Boosts ${effect.stat} by ${effect.amount}</li>`;
-        }
-        effectHTML += '</ul>';
-        effectDiv.innerHTML = effectHTML;
-        contentElement.appendChild(effectDiv);
-    }
-
-    // Show popup
-    if (popup) {
-        popup.classList.add('show');
-    }
-}
-
-function closeItemDetails() {
-    const popup = document.getElementById('item-details-popup');
-    if (popup) {
-        popup.classList.remove('show');
-    }
 }
 
 window.showGlideAlert = showGlideAlert;
