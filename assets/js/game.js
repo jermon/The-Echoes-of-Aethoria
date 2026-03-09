@@ -1034,6 +1034,19 @@ function setupSkillsPopup() {
     });
 }
 
+function openInventoryByDefaultWhenItemsPresent() {
+    const hasSceneItems = document.querySelector('.available-item-chip') !== null;
+
+    if (!hasSceneItems) {
+        return;
+    }
+
+    const inventoryPopup = document.getElementById('inventory-popup');
+    if (inventoryPopup) {
+        inventoryPopup.classList.add('show');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     if (isStartPage()) {
         resetGameToDefaults();
@@ -1046,6 +1059,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupItemDetailsPopup();
     setupSkillsPopup();
     initializeAvailableItems();
+    openInventoryByDefaultWhenItemsPresent();
     applyPageStatBonuses();
 
     document.querySelectorAll('#choices a').forEach(link => {
