@@ -13,8 +13,11 @@ layout: default
     {% include inventory_popup.html %}
     <script>
         window.GAME_DATA = {
+            inventory_compartments: {{ site.data.inventory_compartments | jsonify }},
             items: {{ site.data.items | jsonify }},
-            foes: {{ site.data.foes | jsonify }}
+            foes: {{ site.data.foes | jsonify }},
+            skills: {{ site.data.possible_skills | jsonify }},
+            combat_tables: {{ site.data.combat_tables | jsonify }}
         };
         window.PAGE_STAT_BONUSES = {{ page.stat_bonuses | jsonify }};
     </script>

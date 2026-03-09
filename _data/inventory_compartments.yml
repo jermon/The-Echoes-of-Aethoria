@@ -1,0 +1,19 @@
+back:
+  label: Back
+  maxWeight: 8
+  maxSpace: 6
+
+belt:
+  label: Belt
+  maxWeight: 4
+  maxSpace: 4
+
+hands:
+  label: Hands
+  maxWeight: 6
+  maxSpace: 2
+
+armour:
+  label: Armour
+  maxWeight: 10
+  maxSpace: 6
