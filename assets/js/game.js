@@ -1,11 +1,25 @@
 // game.js
 
-const INVENTORY_COMPARTMENTS = {
+const DEFAULT_INVENTORY_COMPARTMENTS = {
     back: { label: 'Back', maxWeight: 8, maxSpace: 6 },
     belt: { label: 'Belt', maxWeight: 4, maxSpace: 4 },
     hands: { label: 'Hands', maxWeight: 6, maxSpace: 2 },
     armour: { label: 'Armour', maxWeight: 10, maxSpace: 6 }
 };
+
+const DATA_INVENTORY_COMPARTMENTS = window.GAME_DATA?.inventory_compartments;
+const INVENTORY_COMPARTMENTS = Object.keys(DEFAULT_INVENTORY_COMPARTMENTS).reduce((compartments, key) => {
+    const candidate = DATA_INVENTORY_COMPARTMENTS?.[key];
+    const fallback = DEFAULT_INVENTORY_COMPARTMENTS[key];
+
+    compartments[key] = {
+        label: typeof candidate?.label === 'string' ? candidate.label : fallback.label,
+        maxWeight: typeof candidate?.maxWeight === 'number' ? candidate.maxWeight : fallback.maxWeight,
+        maxSpace: typeof candidate?.maxSpace === 'number' ? candidate.maxSpace : fallback.maxSpace
+    };
+
+    return compartments;
+}, {});
 
 const DEFAULT_ITEM_CATALOG = {
     Bow: {
@@ -62,7 +76,7 @@ const DATA_COMBAT_TABLES = window.GAME_DATA?.combat_tables || {
     fumbles: []
 };
 
-const SKILL_TREE = [
+const DEFAULT_SKILL_TREE = [
     {
         name: 'Combat',
         branches: [
@@ -127,6 +141,49 @@ const SKILL_TREE = [
         ]
     }
 ];
+
+const DEFAULT_SKILL_LEVELS = {
+    Swordplay: 4,
+    'Shield Bash': 3,
+    Riposte: 2,
+    'Longbow Aim': 5,
+    'Quick Draw': 3,
+    'Piercing Shot': 4,
+    'Trail Reading': 4,
+    'Scent Marking': 2,
+    'Silent Pursuit': 3,
+    'Camp Setup': 4,
+    Foraging: 5,
+    'Herbal Remedy': 3,
+    'Glyph Etching': 2,
+    'Ward Sigils': 3,
+    'Resonance Binding': 1,
+    'Focus Trance': 4,
+    'Echo Sense': 5,
+    'Spirit Lure': 2
+};
+
+const DATA_SKILLS = Array.isArray(window.GAME_DATA?.skills) ? window.GAME_DATA.skills : [];
+const SKILL_TREE = DATA_SKILLS.length
+    ? DATA_SKILLS.map(discipline => ({
+        name: discipline?.discipline || discipline?.name || 'Unknown',
+        branches: Array.isArray(discipline?.branches)
+            ? discipline.branches.map(branch => ({
+                name: branch?.name || 'Uncategorized',
+                skills: Array.isArray(branch?.skills)
+                    ? branch.skills
+                        .filter(skill => typeof skill?.name === 'string')
+                        .map(skill => ({
+                            name: skill.name,
+                            level: typeof skill.level === 'number'
+                                ? skill.level
+                                : (DEFAULT_SKILL_LEVELS[skill.name] || 1)
+                        }))
+                    : []
+            }))
+            : []
+    }))
+    : DEFAULT_SKILL_TREE;
 
 const DEFAULT_INVENTORY = {
     back: [],
