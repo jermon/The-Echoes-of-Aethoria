@@ -50,17 +50,17 @@ criticals:
 
 fumbles:
   - max: 25
-    text: "You hesitate, losing your advantage."
+    text: "A moment of hesitation, losing the advantage."
     damage_self: 0
   - max: 50
-    text: "You stumble and lose your balance."
+    text: "Stumbles and loses balance."
     damage_self: 0
   - max: 75
-    text: "Your weapon slips, ruining the attack."
+    text: "The weapon slips from clumsy hands."
     damage_self: 0
   - max: 90
-    text: "You strike yourself in the leg!"
+    text: "Strikes self in the leg!"
     damage_self: 2
   - max: 100
-    text: "Disastrous fumble! You injure yourself severely."
+    text: "Disastrous fumble! Self-inflicted wound."
     damage_self: 5
